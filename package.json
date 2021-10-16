@@ -1,0 +1,21 @@
+{
+    "name": "sample-project-ts",
+    "version": "0.0.1",
+    "main": "index.js",
+    "license": "MIT",
+    "devDependencies": {
+        "@algo-builder/algob": "^2.0.0",
+        "chai": "^4.3.4",
+        "mocha": "^8.1.1",
+        "ts-mocha": "^8.0.0"
+    },
+    "scripts": {
+        "algob": "algob",
+        "build": "tsc --build .",
+        "build:watch": "tsc -w -p ."
+    },
+    "dependencies": {
+        "@types/node": "^16.11.0",
+        "typescript": "^4.4.4"
+    }
+}

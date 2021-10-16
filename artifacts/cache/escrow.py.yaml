@@ -1,0 +1,73 @@
+filename: escrow.py
+timestamp: 1634406518
+compiled: AiYBILHrC9aigAf7X2c5VNrRe2OA2+w4vdhCJImzstjdLZt+MSAyAxIxCTIDEhAxBygSEEM=
+compiledHash: GN5VUIE4D7WCYFLZK5LPQCL4Z66Y2RIIVCUG3U7FK4W5TKQSLK2G7V6TGY
+srcHash: 3417275215
+tealCode: |
+    #pragma version 2
+    txn RekeyTo
+    global ZeroAddress
+    ==
+    txn CloseRemainderTo
+    global ZeroAddress
+    ==
+    &&
+    txn Receiver
+    addr WHVQXVVCQAD7WX3HHFKNVUL3MOANX3BYXXMEEJEJWOZNRXJNTN7LTNPSTY
+    ==
+    &&
+    return
+base64ToBytes:
+    - 2
+    - 38
+    - 1
+    - 32
+    - 177
+    - 235
+    - 11
+    - 214
+    - 162
+    - 128
+    - 7
+    - 251
+    - 95
+    - 103
+    - 57
+    - 84
+    - 218
+    - 209
+    - 123
+    - 99
+    - 128
+    - 219
+    - 236
+    - 56
+    - 189
+    - 216
+    - 66
+    - 36
+    - 137
+    - 179
+    - 178
+    - 216
+    - 221
+    - 45
+    - 155
+    - 126
+    - 49
+    - 32
+    - 50
+    - 3
+    - 18
+    - 49
+    - 9
+    - 50
+    - 3
+    - 18
+    - 16
+    - 49
+    - 7
+    - 40
+    - 18
+    - 16
+    - 67
