@@ -1,19 +1,10 @@
 import dataclasses
-from pyteal import Addr, And, Global, Int, Mode, Txn, Gtxn, Cond, TxnType, compileTeal
 import sys
-from src.utils import parse_params
-from src.utils import (
-    account_balance,
-    add_standalone_account,
-    create_payment_transaction,
-    fund_account,
-    process_logic_sig_transaction,
-    process_transactions,
-    logic_signature,
-    suggested_params,
-    transaction_info,
-)
 
+from pyteal import (Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType,
+                    compileTeal)
+
+from src.utils import parse_params
 
 """
 The AlgoWorld Cards Atomic Swapper
@@ -26,8 +17,12 @@ TEAL_VERSION = 5
 
 MAX_FEE = Int(1000)
 
-CARD_OPTIN_GSIZE = Int(1)
-CARD_OPTIN = 0
+CARD_OPTIN_GSIZE = Int(2)
+CARD_OPTIN_FEE = 0
+CARD_OPTIN = 1
+
+CARD_DEPOSIT_GSIZE = Int(1)
+CARD_DEPOSIT = 0
 
 CARDS_SWAP_GSIZE = Int(2)
 OFFERED_CARD_XFER = 0
@@ -46,25 +41,18 @@ class SwapConfig:
     required_card_id: int
     optin_last_valid_block: int
 
-class SwapperContractHelper:
-
-    @staticmethod
-    def setup_swapper_contract(swap_creator: str, offered_card_id: int, required_card_id: int, optin_last_valid_block: int):
-        """Initialize and return bank contract for provided receiver."""
-
-        teal_source = compile_stateless(swapper(SwapConfig(swap_creator, offered_card_id, required_card_id, optin_last_valid_block)))
-        logic_sig = logic_signature(teal_source)
-        escrow_address = logic_sig.address()
-        # fund_account(escrow_address)
-        return logic_sig, escrow_address
-
-
 
 def swapper(cfg: SwapConfig):
 
     is_card_optin = And(
         Global.group_size() == CARD_OPTIN_GSIZE,
+        Gtxn[CARD_OPTIN_FEE].type_enum() == TxnType.Payment,
         Gtxn[CARD_OPTIN].type_enum() == TxnType.AssetTransfer,
+    )
+
+    is_card_deposit = And(
+        Global.group_size() == CARD_DEPOSIT_GSIZE,
+        Gtxn[CARD_DEPOSIT].type_enum() == TxnType.AssetTransfer
     )
 
     is_cards_swap = And(
@@ -82,6 +70,7 @@ def swapper(cfg: SwapConfig):
 
     return Cond(
         [is_card_optin, card_optin(cfg)],
+        [is_card_deposit, card_optin(cfg)],
         [is_cards_swap, cards_swap(cfg)],
         [is_close_swap, close_swap(cfg)],
     )
@@ -89,7 +78,13 @@ def swapper(cfg: SwapConfig):
 
 def card_optin(cfg: SwapConfig):
 
-    precondition = And(
+    card_xfer_fee_precondition = And(
+        Gtxn[CARD_OPTIN_FEE].fee() <= MAX_FEE,
+        Gtxn[CARD_OPTIN_FEE].receiver() == Gtxn[CARD_OPTIN].sender(),
+        Gtxn[CARD_OPTIN_FEE].close_remainder_to() == Global.zero_address(),
+        Gtxn[CARD_OPTIN_FEE].rekey_to() == Global.zero_address(),
+    )
+    card_xfer_precondition = And(
         Gtxn[CARD_OPTIN].fee() <= MAX_FEE,
         Gtxn[CARD_OPTIN].asset_sender() == Global.zero_address(),
         Gtxn[CARD_OPTIN].asset_close_to() == Global.zero_address(),
@@ -97,14 +92,30 @@ def card_optin(cfg: SwapConfig):
     )
 
     return And(
-        precondition,
-
+        card_xfer_fee_precondition,
+        card_xfer_precondition,
         Gtxn[CARD_OPTIN].xfer_asset() == Int(cfg.offered_card_id),
         Gtxn[CARD_OPTIN].asset_amount() == Int(0),
         Gtxn[CARD_OPTIN].sender() == Gtxn[CARD_OPTIN].asset_receiver(),
         Gtxn[CARD_OPTIN].last_valid() < Int(cfg.optin_last_valid_block)
     )
 
+def is_card_deposit(cfg: SwapConfig):
+
+    card_deposit_precondition = And(
+        Gtxn[CARD_DEPOSIT].fee() <= MAX_FEE,
+        Gtxn[CARD_DEPOSIT].asset_sender() == Global.zero_address(),
+        Gtxn[CARD_DEPOSIT].asset_close_to() == Global.zero_address(),
+        Gtxn[CARD_DEPOSIT].rekey_to() == Global.zero_address(),
+    )
+
+    return And(
+        card_deposit_precondition,
+        Gtxn[CARD_DEPOSIT].xfer_asset() == Int(cfg.offered_card_id),
+        Gtxn[CARD_DEPOSIT].asset_amount() >= Int(1),
+        Gtxn[CARD_DEPOSIT].sender() == cfg.swap_creator,
+        Gtxn[CARD_DEPOSIT].last_valid() < Int(cfg.optin_last_valid_block)
+    )
 
 def cards_swap(cfg: SwapConfig):
 
