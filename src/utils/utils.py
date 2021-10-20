@@ -1,9 +1,6 @@
-import sys
 import yaml
 
-'''
-Overwrites scParam values if args is defined and has keys common from scParam
-'''
+
 def parse_params(args, scParam):
 
     # decode external parameter and update current values.
