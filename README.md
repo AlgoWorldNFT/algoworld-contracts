@@ -1,94 +1,53 @@
-![py-algorand-sdk-pyteal-pytest](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/py-algorand-sdk-pyteal-pytest.png?raw=true)
+<p align="center"><a  href="https://twitter.com/algoworld_nft/status/1450608110268211203"><img  width=100%  src="https://pbs.twimg.com/media/FCGWpeIWEAsTZ9A?format=jpg&name=4096x4096"  alt="687474703a2f2f6936332e74696e797069632e636f6d2f333031336c67342e706e67"  border="0" /></a></p>
 
-Create two Algorand smart contracts using [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), respectively [PyTeal](https://github.com/algorand/pyteal) package, and test them using [pytest](https://docs.pytest.org/).
+<p align="center">
+    <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" alt="Frontend" /></a>
+    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" alt="Javadoc" /></a>
+    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" alt="AlgoWorldExplorer" /></a>
+</p>
 
----
+## 📃 About
 
-**Security warning**
+The following repository hosts the source codes for AlgoWorld Swapper stateless ASC1 smart contracts.
 
-This project has not been audited and should not be used in a production environment.
+## Prerequisites
 
----
+-   [poetry](https://python-poetry.org/)
+-   [pre-commit](https://pre-commit.com/)
+-   [Algorand Sandbox](https://github.com/algorand/sandbox)
+-   [Docker](https://www.docker.com/)
 
-# Requirements
+## Installation
 
-You should have Python 3 installed on your system. Also, this tutorial uses `python3-venv` for creating virtual environments - install it in a Debian/Ubuntu based systems by issuing the following command:
+This section assumes that poetry and pre-commit are installed and executed from the root folder of this repository.
 
-```bash
-$ sudo apt-get install python3-venv
-```
-
-[Algorand Sandbox](https://github.com/algorand/sandbox) must be installed on your computer. It is implied that the Sandbox executable is in the `sandbox` directory next to this project directory:
-
-```bash
-$ tree -L 1
-.
-├── algorand-contracts-testing
-└── sandbox
-```
-
-If that's not the case, then you should set `ALGORAND_SANBOX_DIR` environment variable holding sandbox directory before running the tests, like the following:
+0. Clone the repo
 
 ```bash
-export ALGORAND_SANBOX_DIR="/home/ipaleka/dev/algorand/sandbox"
+git clone https://github.com/AlgoWorldNFT/algoworld-swapper
 ```
 
-If you want to clone the repositories, not just download them, then you should have Git installed on your computer.
-
-# Setup
-
-At first create the root directory:
+1. Install python requirements
 
 ```bash
-cd ~
-mkdir algorand
-cd algorand
+poetry install # install all dependencies
+poetry shell # activate virtual env
 ```
 
-Then clone both repositories:
+2. Configure `pre-commit` hooks
 
 ```bash
-git clone https://github.com/ipaleka/algorand-contracts-testing.git
-git clone https://github.com/algorand/sandbox.git
+pre-commit install
 ```
 
-As always for the Python-based projects, you should create a Python environment and activate it:
+## Testing
+
+Testing assumes that docker and algorand sandbox are both up and running. The sandbox repository has to either be available at `../sandbox` or set via `ALGORAND_SANBOX_DIR`.
 
 ```bash
-python3 -m venv contractsvenv
-source contractsvenv/bin/activate
+(.venv) pytest
 ```
 
-Now change the directory to the project root directory and install the project dependencies with:
+## Contribution guideline
 
-```bash
-(contractsvenv) $ cd algorand-contracts-testing
-(contractsvenv) $ pip install -r requirements.txt
-```
-
-Please bear in mind that starting the Sandbox for the first time takes time. If that's the case then your first tests run will take longer than usual.
-
-Run the tests with:
-
-```bash
-(contractsvenv) $ pytest -v
-```
-
-For speeding up the tests run, issue the following to use three of your processor's cores in parallel:
-
-```bash
-(contractsvenv) $ pytest -v -n 3
-```
-
-# Troubleshooting
-
-If you want a fresh start, reset the Sandbox with:
-
-```bash
-../sandbox/sandbox clean
-../sandbox/sandbox up
-```
-
-# TL; DR
-
-https://user-images.githubusercontent.com/49662536/128438519-1cc02e16-db55-4583-9ad9-1e8023939da9.mp4
+TBD

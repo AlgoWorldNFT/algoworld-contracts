@@ -1,1 +1,1 @@
-from tests.models.models import Wallet, LogicSigWallet
+from tests.models.models import LogicSigWallet, Wallet

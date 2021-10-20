@@ -1,8 +1,7 @@
 import dataclasses
 import sys
 
-from pyteal import (Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType,
-                    compileTeal)
+from pyteal import Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
 from src.utils import parse_params
 
@@ -52,7 +51,7 @@ def swapper(cfg: SwapConfig):
 
     is_card_deposit = And(
         Global.group_size() == CARD_DEPOSIT_GSIZE,
-        Gtxn[CARD_DEPOSIT].type_enum() == TxnType.AssetTransfer
+        Gtxn[CARD_DEPOSIT].type_enum() == TxnType.AssetTransfer,
     )
 
     is_cards_swap = And(
@@ -97,8 +96,9 @@ def card_optin(cfg: SwapConfig):
         Gtxn[CARD_OPTIN].xfer_asset() == Int(cfg.offered_card_id),
         Gtxn[CARD_OPTIN].asset_amount() == Int(0),
         Gtxn[CARD_OPTIN].sender() == Gtxn[CARD_OPTIN].asset_receiver(),
-        Gtxn[CARD_OPTIN].last_valid() < Int(cfg.optin_last_valid_block)
+        Gtxn[CARD_OPTIN].last_valid() < Int(cfg.optin_last_valid_block),
     )
+
 
 def is_card_deposit(cfg: SwapConfig):
 
@@ -114,8 +114,9 @@ def is_card_deposit(cfg: SwapConfig):
         Gtxn[CARD_DEPOSIT].xfer_asset() == Int(cfg.offered_card_id),
         Gtxn[CARD_DEPOSIT].asset_amount() >= Int(1),
         Gtxn[CARD_DEPOSIT].sender() == cfg.swap_creator,
-        Gtxn[CARD_DEPOSIT].last_valid() < Int(cfg.optin_last_valid_block)
+        Gtxn[CARD_DEPOSIT].last_valid() < Int(cfg.optin_last_valid_block),
     )
+
 
 def cards_swap(cfg: SwapConfig):
 
@@ -127,19 +128,16 @@ def cards_swap(cfg: SwapConfig):
     )
 
     required_card_xfer_precondition = And(
-        Gtxn[REQUIRED_CARD_XFER].asset_sender() == Global.zero_address(),
+        Gtxn[REQUIRED_CARD_XFER].asset_sender() == Global.zero_address()
     )
 
     return And(
         offered_card_xfer_precondition,
         required_card_xfer_precondition,
-
         Gtxn[OFFERED_CARD_XFER].xfer_asset() == Int(cfg.offered_card_id),
         Gtxn[OFFERED_CARD_XFER].asset_amount() == Int(1),
-
         Gtxn[REQUIRED_CARD_XFER].xfer_asset() == Int(cfg.required_card_id),
         Gtxn[REQUIRED_CARD_XFER].asset_amount() == Int(1),
-
         Gtxn[OFFERED_CARD_XFER].asset_receiver() == Gtxn[REQUIRED_CARD_XFER].sender(),
         Gtxn[REQUIRED_CARD_XFER].asset_receiver() == Addr(cfg.swap_creator),
     )
@@ -161,14 +159,11 @@ def close_swap(cfg: SwapConfig):
     return And(
         card_close_precondition,
         swap_close_precondition,
-
         Gtxn[CARD_CLOSE].xfer_asset() == Int(cfg.offered_card_id),
         Gtxn[CARD_CLOSE].asset_receiver() == Addr(cfg.swap_creator),
         Gtxn[CARD_CLOSE].asset_close_to() == Addr(cfg.swap_creator),
-
         Gtxn[SWAP_CLOSE].receiver() == Addr(cfg.swap_creator),
         Gtxn[SWAP_CLOSE].close_remainder_to() == Addr(cfg.swap_creator),
-
         Gtxn[PROOF].sender() == Addr(cfg.swap_creator),
         Gtxn[PROOF].receiver() == Addr(cfg.swap_creator),
         Gtxn[PROOF].amount() == Int(0),
@@ -184,11 +179,11 @@ if __name__ == "__main__":
         "swap_creator": "2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
         "offered_card_id": 42,
         "required_card_id": 69,
-        "optin_last_valid_block": 420
+        "optin_last_valid_block": 420,
     }
 
     # Overwrite params if sys.argv[1] is passed
-    if(len(sys.argv) > 1):
+    if len(sys.argv) > 1:
         params = parse_params(sys.argv[1], params)
 
     print(compile_stateless(swapper(SwapConfig(**params))))

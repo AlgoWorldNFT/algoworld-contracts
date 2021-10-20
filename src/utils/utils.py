@@ -1,5 +1,6 @@
 import yaml
 
+
 def parse_params(args, scParam):
 
     # decode external parameter and update current values.

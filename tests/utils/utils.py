@@ -6,15 +6,22 @@ import pty
 import subprocess
 import time
 from pathlib import Path
+from typing import List
 
 import yaml
 from algosdk import account, mnemonic
 from algosdk.error import IndexerHTTPError
-from algosdk.future.transaction import AssetConfigTxn, AssetTransferTxn, LogicSig, PaymentTxn, Transaction, calculate_group_id
+from algosdk.future.transaction import (
+    AssetConfigTxn,
+    AssetTransferTxn,
+    LogicSig,
+    PaymentTxn,
+    Transaction,
+    calculate_group_id,
+)
 from algosdk.v2client import algod, indexer
-from typing import List
 
-from tests.models import Wallet, LogicSigWallet
+from tests.models import LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
 
@@ -127,6 +134,7 @@ def wait_for_confirmation(client, transaction_id, timeout):
         "pending tx not found in timeout rounds, timeout value = : {}".format(timeout)
     )
 
+
 def process_transactions(transactions):
     """Send provided grouped `transactions` to network and wait for confirmation."""
     client = _algod_client()
@@ -147,6 +155,7 @@ def generate_wallet():
     private_key, public_key = account.generate_account()
     return Wallet(private_key, public_key)
 
+
 def generate_stateless_contract(compiled_teal: str) -> LogicSigWallet:
     """Initialize and return bank contract for provided receiver."""
 
@@ -154,7 +163,8 @@ def generate_stateless_contract(compiled_teal: str) -> LogicSigWallet:
     escrow_address = logic_sig.address()
     return LogicSigWallet(logic_sig, escrow_address)
 
-def fund_wallet(wallet: Wallet, initial_funds: int=int(10 * 1e6)):
+
+def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
     """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
     if initial_funds_address is None:
@@ -167,11 +177,13 @@ def fund_wallet(wallet: Wallet, initial_funds: int=int(10 * 1e6)):
         "Initial funds",
     )
 
+
 def calculate_and_assign_group_ids(transactions: List[Transaction]):
     gid = calculate_group_id(transactions)
 
     for transaction in transactions:
         transaction.group = gid
+
 
 ## RETRIEVING
 ################################################################
@@ -229,6 +241,7 @@ def logic_signature(teal_source):
     compiled_binary = _compile_source(teal_source)
     return LogicSig(compiled_binary)
 
+
 def parse_params(args, scParam):
 
     # decode external parameter and update current values.
@@ -241,9 +254,10 @@ def parse_params(args, scParam):
     except yaml.YAMLError as exc:
         print(exc)
 
+
 ## ASA
 ################################################################
-def mint_asa(sender:str, sender_pass: str, asset_name: str, total:int, decimals:int):
+def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimals: int):
     """Return transaction with provided id."""
     algod_client = _algod_client()
     params = algod_client.suggested_params()
@@ -260,7 +274,8 @@ def mint_asa(sender:str, sender_pass: str, asset_name: str, total:int, decimals:
         freeze=sender,
         clawback=sender,
         url="https://path/to/my/asset/details",
-        decimals=decimals)
+        decimals=decimals,
+    )
     # Sign with secret key of creator
     stxn = txn.sign(sender_pass)
 
@@ -290,7 +305,8 @@ def opt_in_asa(wallet: Wallet, asset_id: int):
         sp=params,
         receiver=wallet.public_key,
         amt=0,
-        index=asset_id)
+        index=asset_id,
+    )
 
     # Sign with secret key of creator
     stxn = txn.sign(wallet.private_key)
