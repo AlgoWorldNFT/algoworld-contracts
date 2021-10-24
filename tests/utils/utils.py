@@ -15,18 +15,24 @@ from algosdk.future.transaction import (
     AssetConfigTxn,
     AssetTransferTxn,
     LogicSig,
+    LogicSigTransaction,
     PaymentTxn,
+    SignedTransaction,
     Transaction,
     calculate_group_id,
+    wait_for_confirmation,
+    write_to_file,
 )
 from algosdk.v2client import algod, indexer
 
 from tests.models import LogicSigWallet, Wallet
 
+from src.algoworldswapper import OPTIN_FUNDING_AMOUNT
+
 INDEXER_TIMEOUT = 10  # 61 for devMode
 
 
-## SANDBOX
+# SANDBOX
 ################################################################
 def _cli_passphrase_for_account(address):
     """Return passphrase for provided address."""
@@ -50,9 +56,10 @@ def _cli_passphrase_for_account(address):
 def _sandbox_directory():
     """Return full path to Algorand's sandbox executable.
 
-    The location of sandbox directory is retrieved either from the ALGORAND_SANBOX_DIR
-    environment variable or if it's not set then the location of sandbox directory
-    is implied to be the sibling of this Django project in the directory tree.
+    The location of sandbox directory is retrieved either from the
+    ALGORAND_SANBOX_DIR environment variable or if it's not set then the
+    location of sandbox directory is implied to be the sibling of this Django
+    project in the directory tree.
     """
     return os.environ.get("ALGORAND_SANBOX_DIR") or str(
         Path(__file__).resolve().parent.parent.parent.parent / "sandbox"
@@ -67,76 +74,58 @@ def _sandbox_executable():
 def call_sandbox_command(*args):
     """Call and return sandbox command composed from provided arguments."""
     return subprocess.run(
-        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
+        [_sandbox_executable(), *args],
+        stdin=pty.openpty()[1],
+        capture_output=True
     )
 
 
-## CLIENTS
+# CLIENTS
 ################################################################
 def _algod_client():
     """Instantiate and return Algod client object."""
     algod_address = "http://localhost:4001"
-    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    algod_token = "a" * 64
     return algod.AlgodClient(algod_token, algod_address)
 
 
 def _indexer_client():
     """Instantiate and return Indexer client object."""
     indexer_address = "http://localhost:8980"
-    indexer_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    indexer_token = "a" * 64
     return indexer.IndexerClient(indexer_token, indexer_address)
 
 
-## TRANSACTIONS
+# TRANSACTIONS
 ################################################################
 def _add_transaction(sender, receiver, passphrase, amount, note):
     """Create and sign transaction from provided arguments.
 
-    Returned non-empty tuple carries field where error was raised and description.
+    Returned non-empty tuple carries field where error was raised and
+    description.
     If the first item is None then the error is non-field/integration error.
     Returned two-tuple of empty strings marks successful transaction.
     """
     client = _algod_client()
     params = client.suggested_params()
-    unsigned_txn = PaymentTxn(sender, params, receiver, amount, None, note.encode())
+    unsigned_txn = PaymentTxn(
+        sender,
+        params,
+        receiver,
+        amount,
+        None,
+        note.encode()
+    )
     signed_txn = unsigned_txn.sign(mnemonic.to_private_key(passphrase))
     transaction_id = client.send_transaction(signed_txn)
     wait_for_confirmation(client, transaction_id, 4)
     return transaction_id
 
 
-def wait_for_confirmation(client, transaction_id, timeout):
-    """
-    Wait until the transaction is confirmed or rejected, or until 'timeout'
-    number of rounds have passed.
-    Args:
-        transaction_id (str): the transaction to wait for
-        timeout (int): maximum number of rounds to wait
-    Returns:
-        dict: pending transaction information, or throws an error if the transaction
-            is not confirmed or rejected in the next timeout rounds
-    """
-    start_round = client.status()["last-round"] + 1
-    current_round = start_round
-
-    while current_round < start_round + timeout:
-        try:
-            pending_txn = client.pending_transaction_info(transaction_id)
-        except Exception:
-            return
-        if pending_txn.get("confirmed-round", 0) > 0:
-            return pending_txn
-        elif pending_txn["pool-error"]:
-            raise Exception("pool error: {}".format(pending_txn["pool-error"]))
-        client.status_after_block(current_round)
-        current_round += 1
-    raise Exception(
-        "pending tx not found in timeout rounds, timeout value = : {}".format(timeout)
-    )
-
-
 def process_transactions(transactions):
-    """Send provided grouped `transactions` to network and wait for confirmation."""
+    """
+    Send provided grouped `transactions` to network and wait for confirmation.
+    """
     client = _algod_client()
     transaction_id = client.send_transactions(transactions)
     wait_for_confirmation(client, transaction_id, 4)
@@ -148,10 +137,57 @@ def suggested_params():
     return _algod_client().suggested_params()
 
 
-## CREATING
+def sign(wallet, txn: Transaction) -> SignedTransaction:
+    if isinstance(wallet, LogicSigWallet):
+        return LogicSigTransaction(txn, wallet.logicsig)  # type: ignore
+
+    assert wallet.private_key
+    return txn.sign(wallet.private_key)
+
+
+def sign_send_wait(wallet: Wallet, txn: Transaction):
+    """Sign a transaction, submit it, and wait for its confirmation."""
+    signed_txn = sign(wallet, txn)
+    tx_id = signed_txn.transaction.get_txid()
+
+    # Facilitating TEAL debugging
+    write_to_file([signed_txn], "/tmp/txn.signed", overwrite=True)
+
+    algod_client = _algod_client()
+    algod_client.send_transactions([signed_txn])
+    wait_for_confirmation(algod_client, tx_id, 4)
+    return algod_client.pending_transaction_info(tx_id)
+
+
+def group_sign_send_wait(signers: List, txns: List[Transaction]):
+    """
+    Sign and send group transaction to network and wait for confirmation.
+    """
+
+    assert len(signers) == len(txns)
+    signed_group = []
+    gid = calculate_group_id(txns)
+
+    for signer, t in zip(signers, txns):
+        t.group = gid
+        signed_group.append(sign(signer, t))
+
+    # Facilitating TEAL debugging
+    write_to_file(signed_group, "/tmp/txn.signed", overwrite=True)
+
+    algod_client = _algod_client()
+    gtxn_id = algod_client.send_transactions(signed_group)
+    wait_for_confirmation(algod_client, gtxn_id, 4)
+    return algod_client.pending_transaction_info(gtxn_id)
+
+
+# CREATING
 ################################################################
 def generate_wallet():
-    """Create standalone account and return two-tuple of its private key and address."""
+    """
+    Create standalone account and return two-tuple of its private key and
+    address.
+    """
     private_key, public_key = account.generate_account()
     return Wallet(private_key, public_key)
 
@@ -161,7 +197,7 @@ def generate_stateless_contract(compiled_teal: str) -> LogicSigWallet:
 
     logic_sig = logic_signature(compiled_teal)
     escrow_address = logic_sig.address()
-    return LogicSigWallet(logic_sig, escrow_address)
+    return LogicSigWallet(logic_sig, escrow_address)  # type: ignore
 
 
 def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
@@ -185,7 +221,7 @@ def calculate_and_assign_group_ids(transactions: List[Transaction]):
         transaction.group = gid
 
 
-## RETRIEVING
+# RETRIEVING
 ################################################################
 def _initial_funds_address():
     """Get the address of initially created account having enough funds.
@@ -198,7 +234,7 @@ def _initial_funds_address():
             account.get("address")
             for account in _indexer_client().accounts().get("accounts", [{}, {}])
             if account.get("created-at-round") == 0
-            and account.get("status") == "Offline"  # "Online" for devMode
+            and account.get("status") == "Online"  # "Online" for devMode
         ),
         None,
     )
@@ -228,7 +264,7 @@ def transaction_info(transaction_id):
     return transaction
 
 
-## UTILITY
+# UTILITY
 ################################################################
 def _compile_source(source):
     """Compile and return teal binary code."""
@@ -255,7 +291,7 @@ def parse_params(args, scParam):
         print(exc)
 
 
-## ASA
+# ASA
 ################################################################
 def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimals: int):
     """Return transaction with provided id."""
@@ -267,7 +303,7 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
         sp=params,
         total=total,
         default_frozen=False,
-        unit_name=asset_name,
+        unit_name="",
         asset_name=asset_name,
         manager=sender,
         reserve=sender,
@@ -281,7 +317,6 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
 
     # Send the transaction to the network and retrieve the txid.
     txid = algod_client.send_transaction(stxn)
-    print(txid)
 
     # Retrieve the asset ID of the newly created asset by first
     # ensuring that the creation transaction was confirmed,
@@ -292,7 +327,11 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
 
     ptx = algod_client.pending_transaction_info(txid)
 
-    return ptx["asset-index"]
+    asset_id = ptx["asset-index"]
+
+    print(f"\n --- ASA {asset_name} - {asset_id} minted.")
+
+    return asset_id
 
 
 def opt_in_asa(wallet: Wallet, asset_id: int):
@@ -314,4 +353,151 @@ def opt_in_asa(wallet: Wallet, asset_id: int):
     # Send the transaction to the network and retrieve the txid.
     txid = algod_client.send_transaction(stxn)
 
+    print(f"\n --- Account {wallet.public_key} opted-in ASA {asset_id}.")
+
     return txid
+
+
+def swapper_opt_in(
+        swap_creator: Wallet,
+        swapper_account: LogicSigWallet,
+        asset_id: int,
+        asset_amount: int = 0,
+        funding_amount: int = OPTIN_FUNDING_AMOUNT,
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    optin_fee_txn = PaymentTxn(
+        sender=swap_creator.public_key,
+        sp=params,
+        receiver=swapper_account.public_key,
+        amt=funding_amount,
+    )
+
+    asa_optin_txn = AssetTransferTxn(
+        sender=swapper_account.public_key,
+        sp=params,
+        receiver=swapper_account.public_key,
+        amt=asset_amount,
+        index=asset_id,
+    )
+
+    group_sign_send_wait(
+        [swap_creator, swapper_account],
+        [optin_fee_txn, asa_optin_txn],
+    )
+
+    print(f"\n --- Swapper {swapper_account.public_key} opted-in ASA {asset_id}.")
+
+
+def swapper_deposit(
+    swap_creator: Wallet,
+    swapper_account: LogicSigWallet,
+    asset_id: int,
+    asset_amount: int = 1,
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    deposit_asa_txn = AssetTransferTxn(
+        sender=swap_creator.public_key,
+        sp=params,
+        receiver=swapper_account.public_key,
+        amt=asset_amount,
+        index=asset_id,
+    )
+
+    sign_send_wait(swap_creator, deposit_asa_txn)
+
+    print(f"\n --- Account {swap_creator.public_key} deposited {asset_amount} "
+          f"units of ASA {asset_id} into {swapper_account.public_key}.")
+
+
+def asa_swap(
+        offered_asset_sender: LogicSigWallet,
+        offered_asset_receiver: Wallet,
+        offered_asset_id: int,
+        offered_asset_amt: int,
+        requested_asset_sender: Wallet,
+        requested_asset_receiver: Wallet,
+        requested_asset_id: int,
+        requested_asset_amt: int,
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    offered_asa_xfer_txn = AssetTransferTxn(
+        sender=offered_asset_sender.public_key,
+        sp=params,
+        receiver=offered_asset_receiver.public_key,
+        amt=offered_asset_amt,
+        index=offered_asset_id,
+    )
+
+    requested_asa_xfer_txn = AssetTransferTxn(
+        sender=requested_asset_sender.public_key,
+        sp=params,
+        receiver=requested_asset_receiver.public_key,
+        amt=requested_asset_amt,
+        index=requested_asset_id,
+    )
+
+    group_sign_send_wait(
+        [offered_asset_sender, requested_asset_sender],
+        [offered_asa_xfer_txn, requested_asa_xfer_txn],
+    )
+
+    print(f"\n --- Account {offered_asset_sender.public_key} sent {offered_asset_amt} "
+          f"units of ASA {offered_asset_id} to {offered_asset_receiver.public_key}.")
+    print(f"\n --- Account {requested_asset_sender.public_key} sent {requested_asset_amt} "
+          f"units of ASA {requested_asset_id} to {requested_asset_receiver.public_key}.")
+
+
+def close_swap(
+        asset_sender: LogicSigWallet,
+        asset_receiver: Wallet,
+        asset_close_to: Wallet,
+        asset_id: int,
+        swapper_funds_sender: LogicSigWallet,
+        swapper_funds_receiver: Wallet,
+        swapper_funds_close_to: Wallet,
+        proof_sender: Wallet,
+        proof_receiver: Wallet,
+        asset_amt: int = 0,
+        swapper_funds_amt: int = 0,
+        proof_amt: int = 0,
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    close_asa_txn = AssetTransferTxn(
+        sender=asset_sender.public_key,
+        sp=params,
+        receiver=asset_receiver.public_key,
+        amt=asset_amt,
+        index=asset_id,
+        close_assets_to=asset_close_to.public_key,
+    )
+
+    close_swap_txn = PaymentTxn(
+        sender=swapper_funds_sender.public_key,
+        sp=params,
+        receiver=swapper_funds_receiver.public_key,
+        amt=swapper_funds_amt,
+        close_remainder_to=swapper_funds_close_to.public_key,
+    )
+
+    proof_txn = PaymentTxn(
+        sender=proof_sender.public_key,
+        sp=params,
+        receiver=proof_receiver.public_key,
+        amt=proof_amt,
+    )
+
+    group_sign_send_wait(
+        [asset_sender, swapper_funds_sender, proof_sender],
+        [close_asa_txn, close_swap_txn, proof_txn],
+    )
+
+    print(f"\n --- Account {proof_sender.public_key} closed Swapper.")
