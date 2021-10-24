@@ -1,11 +1,12 @@
 import pytest
+from algosdk.error import AlgodHTTPError
 
 from src.algoworldswapper import (
+    OPTIN_FUNDING_AMOUNT,
+    SwapConfig,
     compile_stateless,
     swapper,
-    SwapConfig,
 )
-
 from tests.models import LogicSigWallet, Wallet
 from tests.utils import (
     asa_swap,
@@ -18,10 +19,6 @@ from tests.utils import (
     swapper_deposit,
     swapper_opt_in,
 )
-
-from algosdk.error import AlgodHTTPError
-
-from src.algoworldswapper import OPTIN_FUNDING_AMOUNT
 
 
 @pytest.fixture()
@@ -75,9 +72,7 @@ def other_asa_idx(swap_user: Wallet) -> int:
 
 @pytest.fixture()
 def swapper_account(
-        swap_creator: Wallet,
-        offered_asa_idx: int,
-        requested_asa_idx: int,
+    swap_creator: Wallet, offered_asa_idx: int, requested_asa_idx: int
 ) -> LogicSigWallet:
 
     cfg = SwapConfig(
@@ -90,18 +85,15 @@ def swapper_account(
 
     swapper_lsig = logic_signature(compile_stateless(swapper(cfg)))
 
-    return LogicSigWallet(
-        logicsig=swapper_lsig,
-        public_key=swapper_lsig.address()
-    )
+    return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
 
 
 def test_swapper_asa_optin(
-        swapper_account: LogicSigWallet,
-        swap_creator: Wallet,
-        swap_user: Wallet,
-        offered_asa_idx: int,
-        other_asa_idx: int,
+    swapper_account: LogicSigWallet,
+    swap_creator: Wallet,
+    swap_user: Wallet,
+    offered_asa_idx: int,
+    other_asa_idx: int,
 ):
 
     with pytest.raises(AlgodHTTPError):
@@ -118,7 +110,7 @@ def test_swapper_asa_optin(
             swap_creator=swap_creator,
             swapper_account=swapper_account,
             asset_id=offered_asa_idx,
-            funding_amount=OPTIN_FUNDING_AMOUNT - 1
+            funding_amount=OPTIN_FUNDING_AMOUNT - 1,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -147,12 +139,12 @@ def test_swapper_asa_optin(
 
 
 def test_swapper_asa_swap(
-        swapper_account: LogicSigWallet,
-        swap_creator: Wallet,
-        swap_user: Wallet,
-        offered_asa_idx: int,
-        requested_asa_idx: int,
-        other_asa_idx: int,
+    swapper_account: LogicSigWallet,
+    swap_creator: Wallet,
+    swap_user: Wallet,
+    offered_asa_idx: int,
+    requested_asa_idx: int,
+    other_asa_idx: int,
 ):
 
     opt_in_asa(swap_creator, requested_asa_idx)
@@ -168,7 +160,7 @@ def test_swapper_asa_swap(
     swapper_deposit(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset_id=offered_asa_idx
+        asset_id=offered_asa_idx,
     )
 
     with pytest.raises(AlgodHTTPError):
@@ -181,7 +173,7 @@ def test_swapper_asa_swap(
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
             requested_asset_id=other_asa_idx,
-            requested_asset_amt=1
+            requested_asset_amt=1,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -194,7 +186,7 @@ def test_swapper_asa_swap(
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
             requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1
+            requested_asset_amt=1,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -207,7 +199,7 @@ def test_swapper_asa_swap(
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
             requested_asset_id=requested_asa_idx,
-            requested_asset_amt=0
+            requested_asset_amt=0,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -220,7 +212,7 @@ def test_swapper_asa_swap(
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_user,
             requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1
+            requested_asset_amt=1,
         )
 
     # Happy path
@@ -232,16 +224,16 @@ def test_swapper_asa_swap(
         requested_asset_sender=swap_user,
         requested_asset_receiver=swap_creator,
         requested_asset_id=requested_asa_idx,
-        requested_asset_amt=1
+        requested_asset_amt=1,
     )
 
 
 def test_swapper_close_swap(
-        swapper_account: LogicSigWallet,
-        swap_creator: Wallet,
-        swap_user: Wallet,
-        offered_asa_idx: int,
-        other_asa_idx: int,
+    swapper_account: LogicSigWallet,
+    swap_creator: Wallet,
+    swap_user: Wallet,
+    offered_asa_idx: int,
+    other_asa_idx: int,
 ):
     opt_in_asa(swap_creator, other_asa_idx)
     opt_in_asa(swap_user, offered_asa_idx)
@@ -250,13 +242,13 @@ def test_swapper_close_swap(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
         asset_id=offered_asa_idx,
-        funding_amount=OPTIN_FUNDING_AMOUNT * 2
+        funding_amount=OPTIN_FUNDING_AMOUNT * 2,
     )
 
     swapper_deposit(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset_id=offered_asa_idx
+        asset_id=offered_asa_idx,
     )
 
     with pytest.raises(AlgodHTTPError):

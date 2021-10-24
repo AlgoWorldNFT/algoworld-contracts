@@ -1,17 +1,7 @@
 import dataclasses
 import sys
 
-from pyteal import (
-    Addr,
-    And,
-    Cond,
-    Global,
-    Gtxn,
-    Int,
-    Mode,
-    TxnType,
-    compileTeal,
-)
+from pyteal import Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
 from src.utils import parse_params
 
@@ -96,11 +86,9 @@ def asa_optin(cfg: SwapConfig):
     return And(
         optin_fee_precondition,
         asa_optin_precondition,
-
         Gtxn[OPTIN_FEE].sender() == Addr(cfg.swap_creator),
         Gtxn[OPTIN_FEE].receiver() == Gtxn[ASA_OPTIN].sender(),
         Gtxn[OPTIN_FEE].amount() >= Int(OPTIN_FUNDING_AMOUNT),
-
         Gtxn[ASA_OPTIN].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[ASA_OPTIN].sender() == Gtxn[ASA_OPTIN].asset_receiver(),
         Gtxn[ASA_OPTIN].asset_amount() == Int(0),
@@ -123,13 +111,10 @@ def asa_swap(cfg: SwapConfig):
     return And(
         offered_asa_xfer_precondition,
         requested_asa_xfer_precondition,
-
         Gtxn[OFFERED_ASA_XFER].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[OFFERED_ASA_XFER].asset_amount() == Int(cfg.offered_asa_amount),
-
         Gtxn[REQUESTED_ASA_XFER].xfer_asset() == Int(cfg.requested_asa_id),
         Gtxn[REQUESTED_ASA_XFER].asset_amount() == Int(cfg.requested_asa_amount),
-
         Gtxn[OFFERED_ASA_XFER].asset_receiver() == Gtxn[REQUESTED_ASA_XFER].sender(),
         Gtxn[REQUESTED_ASA_XFER].asset_receiver() == Addr(cfg.swap_creator),
     )
@@ -151,14 +136,11 @@ def close_swap(cfg: SwapConfig):
     return And(
         asa_close_precondition,
         swap_close_precondition,
-
         Gtxn[ASA_CLOSE].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[ASA_CLOSE].asset_receiver() == Addr(cfg.swap_creator),
         Gtxn[ASA_CLOSE].asset_close_to() == Addr(cfg.swap_creator),
-
         Gtxn[SWAP_CLOSE].receiver() == Addr(cfg.swap_creator),
         Gtxn[SWAP_CLOSE].close_remainder_to() == Addr(cfg.swap_creator),
-
         Gtxn[PROOF].sender() == Addr(cfg.swap_creator),
         Gtxn[PROOF].receiver() == Addr(cfg.swap_creator),
         Gtxn[PROOF].amount() == Int(0),

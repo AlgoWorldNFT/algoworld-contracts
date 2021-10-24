@@ -25,9 +25,8 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
-from tests.models import LogicSigWallet, Wallet
-
 from src.algoworldswapper import OPTIN_FUNDING_AMOUNT
+from tests.models import LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
 
@@ -74,9 +73,7 @@ def _sandbox_executable():
 def call_sandbox_command(*args):
     """Call and return sandbox command composed from provided arguments."""
     return subprocess.run(
-        [_sandbox_executable(), *args],
-        stdin=pty.openpty()[1],
-        capture_output=True
+        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
     )
 
 
@@ -108,14 +105,7 @@ def _add_transaction(sender, receiver, passphrase, amount, note):
     """
     client = _algod_client()
     params = client.suggested_params()
-    unsigned_txn = PaymentTxn(
-        sender,
-        params,
-        receiver,
-        amount,
-        None,
-        note.encode()
-    )
+    unsigned_txn = PaymentTxn(sender, params, receiver, amount, None, note.encode())
     signed_txn = unsigned_txn.sign(mnemonic.to_private_key(passphrase))
     transaction_id = client.send_transaction(signed_txn)
     wait_for_confirmation(client, transaction_id, 4)
@@ -359,11 +349,11 @@ def opt_in_asa(wallet: Wallet, asset_id: int):
 
 
 def swapper_opt_in(
-        swap_creator: Wallet,
-        swapper_account: LogicSigWallet,
-        asset_id: int,
-        asset_amount: int = 0,
-        funding_amount: int = OPTIN_FUNDING_AMOUNT,
+    swap_creator: Wallet,
+    swapper_account: LogicSigWallet,
+    asset_id: int,
+    asset_amount: int = 0,
+    funding_amount: int = OPTIN_FUNDING_AMOUNT,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
@@ -384,8 +374,7 @@ def swapper_opt_in(
     )
 
     group_sign_send_wait(
-        [swap_creator, swapper_account],
-        [optin_fee_txn, asa_optin_txn],
+        [swap_creator, swapper_account], [optin_fee_txn, asa_optin_txn]
     )
 
     print(f"\n --- Swapper {swapper_account.public_key} opted-in ASA {asset_id}.")
@@ -410,19 +399,21 @@ def swapper_deposit(
 
     sign_send_wait(swap_creator, deposit_asa_txn)
 
-    print(f"\n --- Account {swap_creator.public_key} deposited {asset_amount} "
-          f"units of ASA {asset_id} into {swapper_account.public_key}.")
+    print(
+        f"\n --- Account {swap_creator.public_key} deposited {asset_amount} "
+        f"units of ASA {asset_id} into {swapper_account.public_key}."
+    )
 
 
 def asa_swap(
-        offered_asset_sender: LogicSigWallet,
-        offered_asset_receiver: Wallet,
-        offered_asset_id: int,
-        offered_asset_amt: int,
-        requested_asset_sender: Wallet,
-        requested_asset_receiver: Wallet,
-        requested_asset_id: int,
-        requested_asset_amt: int,
+    offered_asset_sender: LogicSigWallet,
+    offered_asset_receiver: Wallet,
+    offered_asset_id: int,
+    offered_asset_amt: int,
+    requested_asset_sender: Wallet,
+    requested_asset_receiver: Wallet,
+    requested_asset_id: int,
+    requested_asset_amt: int,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
@@ -448,25 +439,29 @@ def asa_swap(
         [offered_asa_xfer_txn, requested_asa_xfer_txn],
     )
 
-    print(f"\n --- Account {offered_asset_sender.public_key} sent {offered_asset_amt} "
-          f"units of ASA {offered_asset_id} to {offered_asset_receiver.public_key}.")
-    print(f"\n --- Account {requested_asset_sender.public_key} sent {requested_asset_amt} "
-          f"units of ASA {requested_asset_id} to {requested_asset_receiver.public_key}.")
+    print(
+        f"\n --- Account {offered_asset_sender.public_key} sent {offered_asset_amt} "
+        f"units of ASA {offered_asset_id} to {offered_asset_receiver.public_key}."
+    )
+    print(
+        f"\n --- Account {requested_asset_sender.public_key} sent {requested_asset_amt} "
+        f"units of ASA {requested_asset_id} to {requested_asset_receiver.public_key}."
+    )
 
 
 def close_swap(
-        asset_sender: LogicSigWallet,
-        asset_receiver: Wallet,
-        asset_close_to: Wallet,
-        asset_id: int,
-        swapper_funds_sender: LogicSigWallet,
-        swapper_funds_receiver: Wallet,
-        swapper_funds_close_to: Wallet,
-        proof_sender: Wallet,
-        proof_receiver: Wallet,
-        asset_amt: int = 0,
-        swapper_funds_amt: int = 0,
-        proof_amt: int = 0,
+    asset_sender: LogicSigWallet,
+    asset_receiver: Wallet,
+    asset_close_to: Wallet,
+    asset_id: int,
+    swapper_funds_sender: LogicSigWallet,
+    swapper_funds_receiver: Wallet,
+    swapper_funds_close_to: Wallet,
+    proof_sender: Wallet,
+    proof_receiver: Wallet,
+    asset_amt: int = 0,
+    swapper_funds_amt: int = 0,
+    proof_amt: int = 0,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
