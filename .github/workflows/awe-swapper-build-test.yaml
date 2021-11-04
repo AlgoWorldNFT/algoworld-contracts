@@ -1,0 +1,29 @@
+name: AWE Swapper Build and Test validation
+
+on: [pull_request]
+
+jobs:
+  build-backend:
+    name: Build & test backend
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9.7
+
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v2.1.0
+      with:
+          poetry-version: 1.1.6
+    - name: Install backend dependencies
+      run: poetry install
+
+    - name: Clone sanbox
+      run: git clone https://github.com/algorand/sandbox.git && cd sandbox && ./sandbox up
+
+    - name: Run pytest
+      run: poetry run pytest
