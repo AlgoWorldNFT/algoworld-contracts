@@ -22,8 +22,11 @@ jobs:
     - name: Install backend dependencies
       run: poetry install
 
-    - name: Clone sanbox
+    - name: Clone algorand sanbox
       run: git clone https://github.com/algorand/sandbox.git && cd sandbox && ./sandbox up
+
+    - name: Run algorand sandbox
+      run: cd sandbox && ./sandbox up
 
     - name: Run pytest
       run: poetry run pytest
