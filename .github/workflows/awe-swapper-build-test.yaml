@@ -30,7 +30,7 @@ jobs:
       shell: 'script -q -e -c "bash {0}"' # hacky hack to maky TTY work
       run: cd ../sandbox && ./sandbox up -v
 
-    - name: Run ls
+    - name: Delay before testing
       run: sleep 10
 
     - name: Run pytest
