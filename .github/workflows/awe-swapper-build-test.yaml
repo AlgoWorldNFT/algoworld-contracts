@@ -23,7 +23,7 @@ jobs:
       run: poetry install
 
     - name: Clone algorand sanbox
-      run: git clone https://github.com/algorand/sandbox.git && cd sandbox && ./sandbox up
+      run: git clone https://github.com/algorand/sandbox.git
 
     - name: Run algorand sandbox
       run: cd sandbox && ./sandbox up
