@@ -23,6 +23,11 @@ jobs:
     - name: Install python dependencies
       run: poetry install
 
+    - uses: pre-commit/action@v2.0.3
+      name: "Linters and formatters check"
+      with:
+        extra_args: --all-files --show-diff-on-failure
+
     - name: Clone algorand sanbox
       run: cd .. && git clone https://github.com/algorand/sandbox.git
 
