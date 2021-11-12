@@ -25,9 +25,21 @@ jobs:
     - name: Clone algorand sanbox
       run: git clone https://github.com/algorand/sandbox.git
 
+    - name: Run ls
+      run: ls
+
+    - name: Clone algorand sanbox
+      run: cd .. && git clone https://github.com/algorand/sandbox.git
+
+    - name: Run ls
+      run: ls
+
     - name: Run algorand sandbox
       shell: 'script -q -e -c "bash {0}"'
-      run: cd sandbox && ./sandbox up -v
+      run: cd sandbox
+
+    - name: Run ls
+      run: ls
 
     - name: Run pytest
       run: poetry run pytest
