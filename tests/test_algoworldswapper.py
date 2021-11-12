@@ -2,6 +2,7 @@ import pytest
 from algosdk.error import AlgodHTTPError
 
 from src.algoworldswapper import (
+    INCENTIVE_FEE_ADDRESS,
     OPTIN_FUNDING_AMOUNT,
     SwapConfig,
     compile_stateless,
@@ -35,6 +36,14 @@ def swap_user() -> Wallet:
     fund_wallet(funded_account)
     print(f"\n --- Swapper User {funded_account.public_key} funded.")
     return funded_account
+
+
+@pytest.fixture()
+def incentive_wallet() -> Wallet:
+    incentive_account = Wallet("", INCENTIVE_FEE_ADDRESS)
+    fund_wallet(incentive_account)
+    print(f"\n --- Incentive Wallet {incentive_account.public_key} funded.")
+    return incentive_account
 
 
 @pytest.fixture()
@@ -142,6 +151,7 @@ def test_swapper_asa_swap(
     swapper_account: LogicSigWallet,
     swap_creator: Wallet,
     swap_user: Wallet,
+    incentive_wallet: Wallet,
     offered_asa_idx: int,
     requested_asa_idx: int,
     other_asa_idx: int,
@@ -174,6 +184,7 @@ def test_swapper_asa_swap(
             requested_asset_receiver=swap_creator,
             requested_asset_id=other_asa_idx,
             requested_asset_amt=1,
+            incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -187,6 +198,7 @@ def test_swapper_asa_swap(
             requested_asset_receiver=swap_creator,
             requested_asset_id=requested_asa_idx,
             requested_asset_amt=1,
+            incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -200,6 +212,7 @@ def test_swapper_asa_swap(
             requested_asset_receiver=swap_creator,
             requested_asset_id=requested_asa_idx,
             requested_asset_amt=0,
+            incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -213,6 +226,7 @@ def test_swapper_asa_swap(
             requested_asset_receiver=swap_user,
             requested_asset_id=requested_asa_idx,
             requested_asset_amt=1,
+            incentive_wallet=incentive_wallet,
         )
 
     # Happy path
@@ -225,6 +239,7 @@ def test_swapper_asa_swap(
         requested_asset_receiver=swap_creator,
         requested_asset_id=requested_asa_idx,
         requested_asset_amt=1,
+        incentive_wallet=incentive_wallet,
     )
 
 
