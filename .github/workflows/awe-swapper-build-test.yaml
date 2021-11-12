@@ -26,7 +26,7 @@ jobs:
       run: git clone https://github.com/algorand/sandbox.git
 
     - name: Run algorand sandbox
-      run: cd sandbox && ./sandbox up -v
+      run: cd sandbox && docker-compose up
 
     - name: Run pytest
       run: poetry run pytest
