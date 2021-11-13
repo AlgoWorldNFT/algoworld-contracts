@@ -415,7 +415,7 @@ def asa_swap(
     requested_asset_id: int,
     requested_asset_amt: int,
     incentive_wallet: Wallet,
-    incentive_amount: int = 1000,
+    incentive_amount: int = 10000,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
