@@ -25,10 +25,7 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
-from src.algoworldswapper import (
-    OPTIN_FUNDING_AMOUNT,
-    INCENTIVE_FEE_AMOUNT,
-)
+from src.algoworldswapper import INCENTIVE_FEE_AMOUNT, OPTIN_FUNDING_AMOUNT
 from tests.models import LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
