@@ -254,7 +254,7 @@ def test_swapper_asa_swap(
             requested_asset_receiver=swap_user,
             requested_asset_id=requested_asa_idx,
             requested_asset_amt=1,
-            incentive_wallet=swap_user,
+            incentive_wallet=incentive_wallet,
             incentive_amount=2000,
         )
 
