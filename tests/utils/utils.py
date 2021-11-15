@@ -25,7 +25,7 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
-from src.algoworldswapper import OPTIN_FUNDING_AMOUNT
+from src.algoworldswapper import INCENTIVE_FEE_AMOUNT, OPTIN_FUNDING_AMOUNT
 from tests.models import LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
@@ -415,7 +415,7 @@ def asa_swap(
     requested_asset_id: int,
     requested_asset_amt: int,
     incentive_wallet: Wallet,
-    incentive_amount: int = 10000,
+    incentive_amount: int = INCENTIVE_FEE_AMOUNT,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()

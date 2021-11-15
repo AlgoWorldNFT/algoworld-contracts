@@ -33,7 +33,7 @@ jobs:
 
     - name: Run algorand sandbox
       shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
-      run: cd ../sandbox && ./sandbox up -v
+      run: cd ../sandbox && ./sandbox up dev -v
 
     - name: Delay before testing
       run: sleep 60

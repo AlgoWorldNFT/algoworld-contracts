@@ -188,7 +188,7 @@ def test_swapper_asa_swap(
         )
 
     with pytest.raises(AlgodHTTPError):
-        print("\n --- Swap fails with wrong requested asset ID")
+        print("\n --- Swap fails with wrong offered asset amount")
         asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
