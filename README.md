@@ -21,20 +21,20 @@ The following repository hosts the source codes for AlgoWorld Swapper stateless 
 
 This section assumes that poetry and pre-commit are installed and executed from the root folder of this repository.
 
-0. Clone the repo
+1. Clone the repo
 
 ```bash
 git clone https://github.com/AlgoWorldNFT/algoworld-swapper
 ```
 
-1. Install python requirements
+2. Install python requirements
 
 ```bash
 poetry install # install all dependencies
 poetry shell # activate virtual env
 ```
 
-2. Configure `pre-commit` hooks
+3. Configure `pre-commit` hooks
 
 ```bash
 pre-commit install
@@ -50,4 +50,4 @@ Testing assumes that docker and algorand sandbox are both up and running. The sa
 
 ## Contribution guideline
 
-TBD
+See [`CONTRIBUTING.md`](CONTRIBUTING.md)
