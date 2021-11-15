@@ -32,11 +32,11 @@ jobs:
       run: cd .. && git clone https://github.com/algorand/sandbox.git
 
     - name: Run algorand sandbox
-      shell: 'script -q -e -c "bash {0}"' # hacky hack to maky TTY work
-      run: cd ../sandbox && ./sandbox up -v
+      shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
+      run: cd ../sandbox && ./sandbox up dev -v
 
     - name: Delay before testing
-      run: sleep 10
+      run: sleep 60
 
     - name: Run pytest
       run: poetry run pytest

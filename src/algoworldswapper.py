@@ -16,14 +16,17 @@ TEAL_VERSION = 5
 
 MAX_FEE = Int(1000)
 OPTIN_FUNDING_AMOUNT = 210000
+INCENTIVE_FEE_AMOUNT = 10000
+INCENTIVE_FEE_ADDRESS = "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A"
 
 ASA_OPTIN_GSIZE = Int(2)
 OPTIN_FEE = 0
 ASA_OPTIN = 1
 
-ASA_SWAP_GSIZE = Int(2)
+ASA_SWAP_GSIZE = Int(3)
 OFFERED_ASA_XFER = 0
 REQUESTED_ASA_XFER = 1
+INCENTIVE_FEE = 2
 
 CLOSE_SWAP_GSIZE = Int(3)
 ASA_CLOSE = 0
@@ -52,6 +55,7 @@ def swapper(cfg: SwapConfig):
         Global.group_size() == ASA_SWAP_GSIZE,
         Gtxn[OFFERED_ASA_XFER].type_enum() == TxnType.AssetTransfer,
         Gtxn[REQUESTED_ASA_XFER].type_enum() == TxnType.AssetTransfer,
+        Gtxn[INCENTIVE_FEE].type_enum() == TxnType.Payment,
     )
 
     is_close_swap = And(
@@ -117,6 +121,8 @@ def asa_swap(cfg: SwapConfig):
         Gtxn[REQUESTED_ASA_XFER].asset_amount() == Int(cfg.requested_asa_amount),
         Gtxn[OFFERED_ASA_XFER].asset_receiver() == Gtxn[REQUESTED_ASA_XFER].sender(),
         Gtxn[REQUESTED_ASA_XFER].asset_receiver() == Addr(cfg.swap_creator),
+        Gtxn[INCENTIVE_FEE].receiver() == Addr(INCENTIVE_FEE_ADDRESS),
+        Gtxn[INCENTIVE_FEE].amount() == Int(INCENTIVE_FEE_AMOUNT),
     )
 
 
