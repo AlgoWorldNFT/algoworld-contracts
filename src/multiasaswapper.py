@@ -96,7 +96,7 @@ def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
     return Cond(
         [is_multi_asa_optin, multi_asa_optin(cfg)],
         [is_multi_asa_swap, multi_asa_swap(cfg)],
-        [is_close_swap, Int(1)],  # TODO
+        [is_close_swap, multi_asa_close_swap(cfg)],
     )
 
 
@@ -192,7 +192,7 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
         for asa in range(cfg.body_size)
     ]
 
-    offered_multi_asa_xfer_close_to = [
+    offered_multi_asa_xfer_asset_close_to = [
         Gtxn[len(cfg.swap_header) + asa].asset_close_to() == Global.zero_address()
         for asa in range(cfg.body_size)
     ]
@@ -219,7 +219,7 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
         *offered_multi_asa_xfer_max_fee,
         *offered_multi_asa_xfer_rekey_to,
         *offered_multi_asa_xfer_asset_sender,
-        *offered_multi_asa_xfer_close_to,
+        *offered_multi_asa_xfer_asset_close_to,
     )
 
     return And(
@@ -231,6 +231,66 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
         *offered_multi_asa_xfer_asset_ids,
         *offered_multi_asa_xfer_asset_amounts,
         *offered_multi_asa_xfer_asset_receiver,
+    )
+
+
+def multi_asa_close_swap(cfg: MultiAsaSwapConfig):
+
+    multi_asa_close_max_fee = [
+        Gtxn[len(cfg.close_swap_header) + asa].fee() <= Int(cfg.max_fee)
+        for asa in range(cfg.body_size)
+    ]
+
+    multi_asa_close_rekey_to = [
+        Gtxn[len(cfg.close_swap_header) + asa].rekey_to() == Global.zero_address()
+        for asa in range(cfg.body_size)
+    ]
+
+    multi_asa_close_asset_sender = [
+        Gtxn[len(cfg.close_swap_header) + asa].asset_sender() == Global.zero_address()
+        for asa in range(cfg.body_size)
+    ]
+
+    asa = 0
+    multi_asa_close_asset_ids = []
+    for k, v in cfg.offered_asa_amounts.items():
+        multi_asa_close_asset_ids += [
+            Gtxn[len(cfg.close_swap_header) + asa].xfer_asset() == Int(int(k))
+        ]
+        asa += 1
+
+    multi_asa_close_asset_receiver = [
+        Gtxn[len(cfg.close_swap_header) + asa].asset_receiver() == Addr(cfg.swap_creator)
+        for asa in range(cfg.body_size)
+    ]
+
+    multi_asa_close_asset_close_to = [
+        Gtxn[len(cfg.close_swap_header) + asa].asset_close_to() == Addr(cfg.swap_creator)
+        for asa in range(cfg.body_size)
+    ]
+
+    asa_close_precondition = And(
+        *multi_asa_close_max_fee,
+        *multi_asa_close_rekey_to,
+        *multi_asa_close_asset_sender,
+    )
+
+    swap_close_precondition = And(
+        Gtxn[cfg.close_swap_bottom['close_out']].fee() <= Int(cfg.max_fee),
+        Gtxn[cfg.close_swap_bottom['close_out']].rekey_to() == Global.zero_address(),
+    )
+
+    return And(
+        asa_close_precondition,
+        swap_close_precondition,
+        *multi_asa_close_asset_ids,
+        *multi_asa_close_asset_receiver,
+        *multi_asa_close_asset_close_to,
+        Gtxn[cfg.close_swap_bottom['close_out']].receiver() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom['close_out']].close_remainder_to() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom['proof']].sender() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom['proof']].receiver() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom['proof']].amount() == Int(0),
     )
 
 
