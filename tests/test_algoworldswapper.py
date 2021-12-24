@@ -169,7 +169,7 @@ def test_swapper_asa_swap(
     swapper_deposit(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset={offered_asa_idx: 1},
+        assets={offered_asa_idx: 1},
     )
 
     with pytest.raises(AlgodHTTPError):
@@ -278,8 +278,8 @@ def test_swapper_close_swap(
     offered_asa_idx: int,
     other_asa_idx: int,
 ):
-    opt_in_asa(swap_creator, other_asa_idx)
-    opt_in_asa(swap_user, offered_asa_idx)
+    opt_in_asa(swap_creator, [other_asa_idx])
+    opt_in_asa(swap_user, [offered_asa_idx])
 
     swapper_opt_in(
         swap_creator=swap_creator,
@@ -291,7 +291,7 @@ def test_swapper_close_swap(
     swapper_deposit(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset={offered_asa_idx: 1},
+        assets={offered_asa_idx: 1},
     )
 
     with pytest.raises(AlgodHTTPError):
@@ -300,7 +300,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_user,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -314,7 +314,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_user,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -328,7 +328,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=other_asa_idx,
+            asset_ids=[other_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -342,7 +342,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_user,
             swapper_funds_close_to=swap_creator,
@@ -356,7 +356,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_user,
@@ -370,7 +370,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -384,7 +384,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -398,7 +398,7 @@ def test_swapper_close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
+            asset_ids=[offered_asa_idx],
             swapper_funds_sender=swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
@@ -412,7 +412,7 @@ def test_swapper_close_swap(
         asset_sender=swapper_account,
         asset_receiver=swap_creator,
         asset_close_to=swap_creator,
-        asset_id=offered_asa_idx,
+        asset_ids=[offered_asa_idx],
         swapper_funds_sender=swapper_account,
         swapper_funds_receiver=swap_creator,
         swapper_funds_close_to=swap_creator,
