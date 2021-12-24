@@ -2,23 +2,22 @@ import pytest
 from algosdk.error import AlgodHTTPError
 
 from src.multiasaswapper import (
-    INCENTIVE_FEE_ADDRESS,
     BASE_OPTIN_FUNDING_AMOUNT,
+    INCENTIVE_FEE_ADDRESS,
     MultiAsaSwapConfig,
     compile_stateless,
     multi_asa_swapper,
 )
 from tests.models import LogicSigWallet, Wallet
 from tests.utils import (
-    multi_asa_to_algo_swap,
     close_swap,
     fund_wallet,
     generate_wallet,
     logic_signature,
     mint_asa,
+    multi_asa_to_algo_swap,
     opt_in_asa,
     swapper_deposit,
-    swapper_opt_in,
     swapper_multi_opt_in,
 )
 
@@ -101,10 +100,7 @@ def multi_asa_swapper_account(
 
     cfg = MultiAsaSwapConfig(
         swap_creator=swap_creator.public_key,
-        offered_asa_amounts={
-            str(offered_asa_a_idx): 1,
-            str(offered_asa_b_idx): 1,
-        },
+        offered_asa_amounts={str(offered_asa_a_idx): 1, str(offered_asa_b_idx): 1},
         requested_algo_amount=1_000_000,
         max_fee=1_000,
         optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,

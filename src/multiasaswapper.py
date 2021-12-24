@@ -28,19 +28,14 @@ class MultiAsaSwapConfig:
         self.body_size = len(self.offered_asa_amounts)
 
         # MULTI ASA OPTIN
-        self.optin_header = {
-            "fee": 0,
-        }
+        self.optin_header = {"fee": 0}
         self.optin_bottom = {}
         self.optin_gsize = (
             len(self.optin_header) + self.body_size + len(self.optin_bottom)
         )
 
         # MULTI ASA SWAP
-        self.swap_header = {
-            "incentive_fee": 0,
-            "requested_algo_xfer": 1,
-        }
+        self.swap_header = {"incentive_fee": 0, "requested_algo_xfer": 1}
         self.swap_bottom = {}
         self.swap_gsize = len(self.swap_header) + self.body_size + len(self.swap_bottom)
 
@@ -307,10 +302,7 @@ def compile_stateless(program):
 
 if __name__ == "__main__":
 
-    offered_asa_amounts = {
-        "1": 10,
-        "2": 10,
-    }
+    offered_asa_amounts = {"1": 10, "2": 10}
 
     config = MultiAsaSwapConfig(
         swap_creator="2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",

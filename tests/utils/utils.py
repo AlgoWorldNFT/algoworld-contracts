@@ -6,7 +6,7 @@ import pty
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 import yaml
 from algosdk import account, mnemonic
@@ -418,9 +418,7 @@ def swapper_multi_opt_in(
 
 
 def swapper_deposit(
-    swap_creator: Wallet,
-    swapper_account: LogicSigWallet,
-    assets: Dict[int, int],
+    swap_creator: Wallet, swapper_account: LogicSigWallet, assets: Dict[int, int]
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
