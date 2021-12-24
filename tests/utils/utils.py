@@ -6,7 +6,7 @@ import pty
 import subprocess
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 import yaml
 from algosdk import account, mnemonic
@@ -324,26 +324,27 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
     return asset_id
 
 
-def opt_in_asa(wallet: Wallet, asset_id: int):
+def opt_in_asa(wallet: Wallet, assets: List[int]):
     """Return transaction with provided id."""
     algod_client = _algod_client()
     params = algod_client.suggested_params()
 
-    txn = AssetTransferTxn(
-        sender=wallet.public_key,
-        sp=params,
-        receiver=wallet.public_key,
-        amt=0,
-        index=asset_id,
-    )
+    for asset_id in assets:
+        txn = AssetTransferTxn(
+            sender=wallet.public_key,
+            sp=params,
+            receiver=wallet.public_key,
+            amt=0,
+            index=asset_id,
+        )
 
-    # Sign with secret key of creator
-    stxn = txn.sign(wallet.private_key)
+        # Sign with secret key of creator
+        stxn = txn.sign(wallet.private_key)
 
-    # Send the transaction to the network and retrieve the txid.
-    txid = algod_client.send_transaction(stxn)
+        # Send the transaction to the network and retrieve the txid.
+        txid = algod_client.send_transaction(stxn)
 
-    print(f"\n --- Account {wallet.public_key} opted-in ASA {asset_id}.")
+        print(f"\n --- Account {wallet.public_key} opted-in ASA {asset_id}.")
 
     return txid
 
@@ -380,32 +381,69 @@ def swapper_opt_in(
     print(f"\n --- Swapper {swapper_account.public_key} opted-in ASA {asset_id}.")
 
 
-def swapper_deposit(
+def swapper_multi_opt_in(
     swap_creator: Wallet,
     swapper_account: LogicSigWallet,
-    asset_id: int,
-    asset_amount: int = 1,
+    assets: Dict[str, str],
+    funding_amount: int,
 ):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
 
-    deposit_asa_txn = AssetTransferTxn(
-        sender=swap_creator.public_key,
-        sp=params,
-        receiver=swapper_account.public_key,
-        amt=asset_amount,
-        index=asset_id,
-    )
+    signers = [swap_creator]
+    transactions = [
+        PaymentTxn(
+            sender=swap_creator.public_key,
+            sp=params,
+            receiver=swapper_account.public_key,
+            amt=funding_amount,
+        )
+    ]
 
-    sign_send_wait(swap_creator, deposit_asa_txn)
+    for asset_id, asset_amount in assets.items():
+        signers.append(swapper_account)
+        transactions.append(
+            AssetTransferTxn(
+                sender=swapper_account.public_key,
+                sp=params,
+                receiver=swapper_account.public_key,
+                amt=asset_amount,
+                index=asset_id,
+            )
+        )
 
-    print(
-        f"\n --- Account {swap_creator.public_key} deposited {asset_amount} "
-        f"units of ASA {asset_id} into {swapper_account.public_key}."
-    )
+    group_sign_send_wait(signers, transactions)
+
+    print(f"\n --- Swapper {swapper_account.public_key} opted-in ASAs {assets.keys()}.")
 
 
-def asa_swap(
+def swapper_deposit(
+    swap_creator: Wallet,
+    swapper_account: LogicSigWallet,
+    assets: Dict[int, int],
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    for asset_id, asset_amount in assets.items():
+
+        deposit_asa_txn = AssetTransferTxn(
+            sender=swap_creator.public_key,
+            sp=params,
+            receiver=swapper_account.public_key,
+            amt=asset_amount,
+            index=asset_id,
+        )
+
+        sign_send_wait(swap_creator, deposit_asa_txn)
+
+        print(
+            f"\n --- Account {swap_creator.public_key} deposited {asset_amount} "
+            f"units of ASA {asset_id} into {swapper_account.public_key}."
+        )
+
+
+def asa_to_asa_swap(
     offered_asset_sender: LogicSigWallet,
     offered_asset_receiver: Wallet,
     offered_asset_id: int,
@@ -458,11 +496,74 @@ def asa_swap(
     )
 
 
+def multi_asa_to_algo_swap(
+    offered_assets_sender: LogicSigWallet,
+    offered_assets_receiver: Wallet,
+    offered_assets: Dict[int, int],
+    requested_algo_amount: int,
+    requested_algo_sender: Wallet,
+    requested_algo_receiver: Wallet,
+    incentive_wallet: Wallet,
+    incentive_amount: int = INCENTIVE_FEE_AMOUNT,
+):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    signers = []
+    transactions = []
+
+    ## Send incentive fees
+    transactions.append(
+        PaymentTxn(
+            sender=requested_algo_sender.public_key,
+            sp=params,
+            receiver=incentive_wallet.public_key,
+            amt=incentive_amount,
+        )
+    )
+    signers.append(requested_algo_sender)
+
+    ## Send algos to creator
+    transactions.append(
+        PaymentTxn(
+            sender=requested_algo_sender.public_key,
+            sp=params,
+            receiver=requested_algo_receiver.public_key,
+            amt=requested_algo_amount,
+        )
+    )
+    signers.append(requested_algo_sender)
+
+    ## Send ASAs
+    for asset_id, asset_amount in offered_assets.items():
+        transactions.append(
+            AssetTransferTxn(
+                sender=offered_assets_sender.public_key,
+                sp=params,
+                receiver=offered_assets_receiver.public_key,
+                amt=asset_amount,
+                index=asset_id,
+            )
+        )
+        signers.append(offered_assets_sender)
+
+    group_sign_send_wait(signers, transactions)
+
+    print(
+        f"\n --- Account {offered_assets_sender.public_key} sent {offered_assets} \
+        to {offered_assets_receiver.public_key}."
+    )
+    print(
+        f"\n --- Account {requested_algo_sender.public_key} sent {requested_algo_amount} "
+        f"units of ALGO {requested_algo_amount} to {requested_algo_receiver.public_key}."
+    )
+
+
 def close_swap(
     asset_sender: LogicSigWallet,
     asset_receiver: Wallet,
     asset_close_to: Wallet,
-    asset_id: int,
+    asset_ids: List[int],
     swapper_funds_sender: LogicSigWallet,
     swapper_funds_receiver: Wallet,
     swapper_funds_close_to: Wallet,
@@ -475,33 +576,43 @@ def close_swap(
     algod_client = _algod_client()
     params = algod_client.suggested_params()
 
-    close_asa_txn = AssetTransferTxn(
-        sender=asset_sender.public_key,
-        sp=params,
-        receiver=asset_receiver.public_key,
-        amt=asset_amt,
-        index=asset_id,
-        close_assets_to=asset_close_to.public_key,
-    )
+    signers = []
+    transactions = []
 
-    close_swap_txn = PaymentTxn(
-        sender=swapper_funds_sender.public_key,
-        sp=params,
-        receiver=swapper_funds_receiver.public_key,
-        amt=swapper_funds_amt,
-        close_remainder_to=swapper_funds_close_to.public_key,
-    )
+    for asset_id in asset_ids:
+        transactions.append(
+            AssetTransferTxn(
+                sender=asset_sender.public_key,
+                sp=params,
+                receiver=asset_receiver.public_key,
+                amt=asset_amt,
+                index=asset_id,
+                close_assets_to=asset_close_to.public_key,
+            )
+        )
+        signers.append(asset_sender)
 
-    proof_txn = PaymentTxn(
-        sender=proof_sender.public_key,
-        sp=params,
-        receiver=proof_receiver.public_key,
-        amt=proof_amt,
+    transactions.append(
+        PaymentTxn(
+            sender=swapper_funds_sender.public_key,
+            sp=params,
+            receiver=swapper_funds_receiver.public_key,
+            amt=swapper_funds_amt,
+            close_remainder_to=swapper_funds_close_to.public_key,
+        )
     )
+    signers.append(swapper_funds_sender)
 
-    group_sign_send_wait(
-        [asset_sender, swapper_funds_sender, proof_sender],
-        [close_asa_txn, close_swap_txn, proof_txn],
+    transactions.append(
+        PaymentTxn(
+            sender=proof_sender.public_key,
+            sp=params,
+            receiver=proof_receiver.public_key,
+            amt=proof_amt,
+        )
     )
+    signers.append(proof_sender)
+
+    group_sign_send_wait(signers, transactions)
 
     print(f"\n --- Account {proof_sender.public_key} closed Swapper.")

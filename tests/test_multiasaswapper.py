@@ -1,16 +1,16 @@
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.algoworldswapper import (
+from src.multiasaswapper import (
     INCENTIVE_FEE_ADDRESS,
-    OPTIN_FUNDING_AMOUNT,
-    SwapConfig,
+    BASE_OPTIN_FUNDING_AMOUNT,
+    MultiAsaSwapConfig,
     compile_stateless,
-    swapper,
+    multi_asa_swapper,
 )
 from tests.models import LogicSigWallet, Wallet
 from tests.utils import (
-    asa_to_asa_swap,
+    multi_asa_to_algo_swap,
     close_swap,
     fund_wallet,
     generate_wallet,
@@ -19,6 +19,7 @@ from tests.utils import (
     opt_in_asa,
     swapper_deposit,
     swapper_opt_in,
+    swapper_multi_opt_in,
 )
 
 
@@ -47,11 +48,22 @@ def incentive_wallet() -> Wallet:
 
 
 @pytest.fixture()
-def offered_asa_idx(swap_creator: Wallet) -> int:
+def offered_asa_a_idx(swap_creator: Wallet) -> int:
     return mint_asa(
         swap_creator.public_key,
         swap_creator.private_key,
         asset_name="Card A",
+        total=1,
+        decimals=0,
+    )
+
+
+@pytest.fixture()
+def offered_asa_b_idx(swap_creator: Wallet) -> int:
+    return mint_asa(
+        swap_creator.public_key,
+        swap_creator.private_key,
+        asset_name="Card B",
         total=1,
         decimals=0,
     )
@@ -79,229 +91,224 @@ def other_asa_idx(swap_user: Wallet) -> int:
     )
 
 
+REQUESTED_ALGO_AMOUNT = 1
+
+
 @pytest.fixture()
-def swapper_account(
-    swap_creator: Wallet, offered_asa_idx: int, requested_asa_idx: int
+def multi_asa_swapper_account(
+    swap_creator: Wallet, offered_asa_a_idx: int, offered_asa_b_idx: int
 ) -> LogicSigWallet:
 
-    cfg = SwapConfig(
+    cfg = MultiAsaSwapConfig(
         swap_creator=swap_creator.public_key,
-        offered_asa_id=offered_asa_idx,
-        offered_asa_amount=1,
-        requested_asa_id=requested_asa_idx,
-        requested_asa_amount=1,
+        offered_asa_amounts={
+            str(offered_asa_a_idx): 1,
+            str(offered_asa_b_idx): 1,
+        },
+        requested_algo_amount=1_000_000,
+        max_fee=1_000,
+        optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
     )
 
-    swapper_lsig = logic_signature(compile_stateless(swapper(cfg)))
+    swapper_lsig = logic_signature(compile_stateless(multi_asa_swapper(cfg)))
 
     return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
 
 
-def test_swapper_asa_optin(
-    swapper_account: LogicSigWallet,
+def test_multi_asa_optin(
+    multi_asa_swapper_account: LogicSigWallet,
     swap_creator: Wallet,
     swap_user: Wallet,
-    offered_asa_idx: int,
+    offered_asa_a_idx: int,
+    offered_asa_b_idx: int,
     other_asa_idx: int,
 ):
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Opt-In fails if not executed by swap creator")
-        swapper_opt_in(
+        swapper_multi_opt_in(
             swap_creator=swap_user,
-            swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
+            swapper_account=multi_asa_swapper_account,
+            assets={offered_asa_a_idx: 0, offered_asa_b_idx: 0},
+            funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Opt-In fails with wrong funding amount")
-        swapper_opt_in(
+        swapper_multi_opt_in(
             swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
-            funding_amount=OPTIN_FUNDING_AMOUNT - 1,
+            swapper_account=multi_asa_swapper_account,
+            assets={offered_asa_a_idx: 0, offered_asa_b_idx: 0},
+            funding_amount=BASE_OPTIN_FUNDING_AMOUNT - 2,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Opt-In fails with wrong ASA")
-        swapper_opt_in(
+        swapper_multi_opt_in(
             swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            asset_id=other_asa_idx,
+            swapper_account=multi_asa_swapper_account,
+            assets={other_asa_idx: 0},
+            funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Opt-In fails with wrong ASA amount")
-        swapper_opt_in(
+        swapper_multi_opt_in(
             swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
-            asset_amount=1,
+            swapper_account=multi_asa_swapper_account,
+            assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+            funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
         )
 
     # Happy path
-    swapper_opt_in(
+    swapper_multi_opt_in(
         swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
+        swapper_account=multi_asa_swapper_account,
+        assets={offered_asa_a_idx: 0, offered_asa_b_idx: 0},
+        funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
     )
 
 
 def test_swapper_asa_swap(
-    swapper_account: LogicSigWallet,
+    multi_asa_swapper_account: LogicSigWallet,
     swap_creator: Wallet,
     swap_user: Wallet,
     incentive_wallet: Wallet,
-    offered_asa_idx: int,
-    requested_asa_idx: int,
-    other_asa_idx: int,
+    offered_asa_a_idx: int,
+    offered_asa_b_idx: int,
 ):
+    opt_in_asa(swap_user, [offered_asa_a_idx, offered_asa_b_idx])
 
-    opt_in_asa(swap_creator, [requested_asa_idx, other_asa_idx])
-    opt_in_asa(swap_user, [offered_asa_idx])
-
-    swapper_opt_in(
+    swapper_multi_opt_in(
         swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
+        swapper_account=multi_asa_swapper_account,
+        assets={offered_asa_a_idx: 0, offered_asa_b_idx: 0},
+        funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
     )
 
     swapper_deposit(
         swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        asset={offered_asa_idx: 1},
+        swapper_account=multi_asa_swapper_account,
+        assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
     )
 
     with pytest.raises(AlgodHTTPError):
-        print("\n --- Swap fails with wrong requested asset ID")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_creator,
-            requested_asset_id=other_asa_idx,
-            requested_asset_amt=1,
+        print("\n --- Swap fails with wrong requested algo amount")
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+            requested_algo_amount=10_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_creator,
             incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
-        print("\n --- Swap fails with wrong offered asset amount")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=0,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_creator,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+        print("\n --- Swap fails with wrong offered offered ASA ids order")
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={offered_asa_b_idx: 1, offered_asa_a_idx: 1},
+            requested_algo_amount=1_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_creator,
             incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
-        print("\n --- Swap fails with wrong requested asset amount")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_creator,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=0,
+        print("\n --- Swap fails with wrong offered offered ASA ids order")
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={123: 1, 321: 1},
+            requested_algo_amount=1_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_creator,
             incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Swap fails with wrong requested asset receiver")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+            requested_algo_amount=1_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_user,
             incentive_wallet=incentive_wallet,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Swap fails with wrong incentive algo receiver")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+            requested_algo_amount=1_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_user,
             incentive_wallet=swap_user,
         )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Swap fails with wrong incentive algo amount")
-        asa_to_asa_swap(
-            offered_asset_sender=swapper_account,
-            offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
-            requested_asset_sender=swap_user,
-            requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+        multi_asa_to_algo_swap(
+            offered_assets_sender=multi_asa_swapper_account,
+            offered_assets_receiver=swap_user,
+            offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+            requested_algo_amount=1_000_000,
+            requested_algo_sender=swap_user,
+            requested_algo_receiver=swap_creator,
             incentive_wallet=incentive_wallet,
-            incentive_amount=2000,
+            incentive_amount=200,
         )
 
     # Happy path
-    asa_to_asa_swap(
-        offered_asset_sender=swapper_account,
-        offered_asset_receiver=swap_user,
-        offered_asset_id=offered_asa_idx,
-        offered_asset_amt=1,
-        requested_asset_sender=swap_user,
-        requested_asset_receiver=swap_creator,
-        requested_asset_id=requested_asa_idx,
-        requested_asset_amt=1,
+    multi_asa_to_algo_swap(
+        offered_assets_sender=multi_asa_swapper_account,
+        offered_assets_receiver=swap_user,
+        offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
+        requested_algo_amount=1_000_000,
+        requested_algo_sender=swap_user,
+        requested_algo_receiver=swap_creator,
         incentive_wallet=incentive_wallet,
     )
 
 
 def test_swapper_close_swap(
-    swapper_account: LogicSigWallet,
+    multi_asa_swapper_account: LogicSigWallet,
     swap_creator: Wallet,
     swap_user: Wallet,
-    offered_asa_idx: int,
+    offered_asa_a_idx: int,
+    offered_asa_b_idx: int,
     other_asa_idx: int,
 ):
-    opt_in_asa(swap_creator, other_asa_idx)
-    opt_in_asa(swap_user, offered_asa_idx)
+    opt_in_asa(swap_creator, [other_asa_idx])
+    opt_in_asa(swap_user, [offered_asa_a_idx, offered_asa_b_idx])
 
-    swapper_opt_in(
+    swapper_multi_opt_in(
         swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
-        funding_amount=OPTIN_FUNDING_AMOUNT * 2,
+        swapper_account=multi_asa_swapper_account,
+        assets={offered_asa_a_idx: 0, offered_asa_b_idx: 0},
+        funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
     )
 
     swapper_deposit(
         swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        asset={offered_asa_idx: 1},
+        swapper_account=multi_asa_swapper_account,
+        assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
     )
 
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong asset receiver")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_user,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -311,11 +318,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong asset close to")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_user,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -325,11 +332,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong asset receiver")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=other_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[other_asa_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -339,11 +346,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong funds receiver")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_user,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -353,11 +360,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong funds close to")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_user,
             proof_sender=swap_creator,
@@ -367,11 +374,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong proof sender")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_user,
@@ -381,11 +388,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong proof receiver")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -395,11 +402,11 @@ def test_swapper_close_swap(
     with pytest.raises(AlgodHTTPError):
         print("\n --- Close swap fails with wrong proof amount")
         close_swap(
-            asset_sender=swapper_account,
+            asset_sender=multi_asa_swapper_account,
             asset_receiver=swap_creator,
             asset_close_to=swap_creator,
-            asset_id=offered_asa_idx,
-            swapper_funds_sender=swapper_account,
+            asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+            swapper_funds_sender=multi_asa_swapper_account,
             swapper_funds_receiver=swap_creator,
             swapper_funds_close_to=swap_creator,
             proof_sender=swap_creator,
@@ -409,11 +416,11 @@ def test_swapper_close_swap(
 
     # Happy path
     close_swap(
-        asset_sender=swapper_account,
+        asset_sender=multi_asa_swapper_account,
         asset_receiver=swap_creator,
         asset_close_to=swap_creator,
-        asset_id=offered_asa_idx,
-        swapper_funds_sender=swapper_account,
+        asset_ids=[offered_asa_a_idx, offered_asa_b_idx],
+        swapper_funds_sender=multi_asa_swapper_account,
         swapper_funds_receiver=swap_creator,
         swapper_funds_close_to=swap_creator,
         proof_sender=swap_creator,

@@ -10,6 +10,9 @@ Multi ASA Atomic Swapper
 """
 
 TEAL_VERSION = 5
+INCENTIVE_FEE_AMOUNT = 10_000
+INCENTIVE_FEE_ADDRESS = "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A"
+BASE_OPTIN_FUNDING_AMOUNT = 210000
 
 
 @dataclasses.dataclass
@@ -19,8 +22,6 @@ class MultiAsaSwapConfig:
     requested_algo_amount: int
     max_fee: int
     optin_funding_amount: int
-    incentive_fee_amount: int
-    incentive_fee_address: str
 
     def __post_init__(self):
         assert len(self.offered_asa_amounts) <= 5
@@ -28,32 +29,30 @@ class MultiAsaSwapConfig:
 
         # MULTI ASA OPTIN
         self.optin_header = {
-            'fee': 0,
+            "fee": 0,
         }
         self.optin_bottom = {}
-        self.optin_gsize = len(
-            self.optin_header) + self.body_size + len(
-            self.optin_bottom)
+        self.optin_gsize = (
+            len(self.optin_header) + self.body_size + len(self.optin_bottom)
+        )
 
         # MULTI ASA SWAP
         self.swap_header = {
-            'incentive_fee': 0,
-            'requested_algo_xfer': 1,
+            "incentive_fee": 0,
+            "requested_algo_xfer": 1,
         }
         self.swap_bottom = {}
-        self.swap_gsize = len(
-            self.swap_header) + self.body_size + len(
-            self.swap_bottom)
+        self.swap_gsize = len(self.swap_header) + self.body_size + len(self.swap_bottom)
 
         # CLOSE MULTI ASA SWAP
         self.close_swap_header = {}
         self.close_swap_bottom = {
-            'close_out': self.body_size + 0,
-            'proof': self.body_size + 1,
+            "close_out": self.body_size + 0,
+            "proof": self.body_size + 1,
         }
-        self.close_swap_gsize = len(
-            self.close_swap_header) + self.body_size + len(
-            self.close_swap_bottom)
+        self.close_swap_gsize = (
+            len(self.close_swap_header) + self.body_size + len(self.close_swap_bottom)
+        )
 
 
 def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
@@ -65,7 +64,7 @@ def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
 
     is_multi_asa_optin = And(
         Global.group_size() == Int(cfg.optin_gsize),
-        Gtxn[cfg.optin_header['fee']].type_enum() == TxnType.Payment,
+        Gtxn[cfg.optin_header["fee"]].type_enum() == TxnType.Payment,
         *multi_asa_optin_type_check,
     )
 
@@ -76,8 +75,8 @@ def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
 
     is_multi_asa_swap = And(
         Global.group_size() == Int(cfg.swap_gsize),
-        Gtxn[cfg.swap_header['incentive_fee']].type_enum() == TxnType.Payment,
-        Gtxn[cfg.swap_header['requested_algo_xfer']].type_enum() == TxnType.Payment,
+        Gtxn[cfg.swap_header["incentive_fee"]].type_enum() == TxnType.Payment,
+        Gtxn[cfg.swap_header["requested_algo_xfer"]].type_enum() == TxnType.Payment,
         *multi_asa_xfer_type_check,
     )
 
@@ -89,8 +88,8 @@ def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
     is_close_swap = And(
         Global.group_size() == Int(cfg.close_swap_gsize),
         *multi_asa_close_type_check,
-        Gtxn[cfg.close_swap_bottom['close_out']].type_enum() == TxnType.Payment,
-        Gtxn[cfg.close_swap_bottom['proof']].type_enum() == TxnType.Payment,
+        Gtxn[cfg.close_swap_bottom["close_out"]].type_enum() == TxnType.Payment,
+        Gtxn[cfg.close_swap_bottom["proof"]].type_enum() == TxnType.Payment,
     )
 
     return Cond(
@@ -128,7 +127,8 @@ def multi_asa_optin(cfg: MultiAsaSwapConfig):
 
     # The following check implies all the ASA xfers have the same sender
     multi_asa_optin_senders = [
-        Gtxn[len(cfg.optin_header) + asa].sender() == Gtxn[cfg.optin_header['fee']].receiver()
+        Gtxn[len(cfg.optin_header) + asa].sender()
+        == Gtxn[cfg.optin_header["fee"]].receiver()
         for asa in range(cfg.body_size)
     ]
 
@@ -141,7 +141,8 @@ def multi_asa_optin(cfg: MultiAsaSwapConfig):
         asa += 1
 
     multi_asa_optin_assets_receivers = [
-        Gtxn[len(cfg.optin_header) + asa].sender() == Gtxn[len(cfg.optin_header) + asa].asset_receiver()
+        Gtxn[len(cfg.optin_header) + asa].sender()
+        == Gtxn[len(cfg.optin_header) + asa].asset_receiver()
         for asa in range(cfg.body_size)
     ]
 
@@ -151,9 +152,9 @@ def multi_asa_optin(cfg: MultiAsaSwapConfig):
     ]
 
     optin_funding_precondition = And(
-        Gtxn[cfg.optin_header['fee']].fee() <= Int(cfg.max_fee),
-        Gtxn[cfg.optin_header['fee']].rekey_to() == Global.zero_address(),
-        Gtxn[cfg.optin_header['fee']].close_remainder_to() == Global.zero_address(),
+        Gtxn[cfg.optin_header["fee"]].fee() <= Int(cfg.max_fee),
+        Gtxn[cfg.optin_header["fee"]].rekey_to() == Global.zero_address(),
+        Gtxn[cfg.optin_header["fee"]].close_remainder_to() == Global.zero_address(),
     )
 
     multi_asa_optin_precondition = And(
@@ -166,8 +167,8 @@ def multi_asa_optin(cfg: MultiAsaSwapConfig):
     return And(
         optin_funding_precondition,
         multi_asa_optin_precondition,
-        Gtxn[cfg.optin_header['fee']].sender() == Addr(cfg.swap_creator),
-        Gtxn[cfg.optin_header['fee']].amount() >= Int(cfg.optin_funding_amount),
+        Gtxn[cfg.optin_header["fee"]].sender() == Addr(cfg.swap_creator),
+        Gtxn[cfg.optin_header["fee"]].amount() >= Int(cfg.optin_funding_amount),
         *multi_asa_optin_senders,
         *multi_asa_optin_xfer_asset,
         *multi_asa_optin_assets_receivers,
@@ -210,8 +211,8 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
         asa += 1
 
     offered_multi_asa_xfer_asset_receiver = [
-        Gtxn[len(cfg.swap_header) + asa].asset_receiver() == Gtxn[
-            cfg.swap_header['requested_algo_xfer']].sender()
+        Gtxn[len(cfg.swap_header) + asa].asset_receiver()
+        == Gtxn[cfg.swap_header["requested_algo_xfer"]].sender()
         for asa in range(cfg.body_size)
     ]
 
@@ -224,10 +225,13 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
 
     return And(
         offered_multi_asa_xfer_precondition,
-        Gtxn[cfg.swap_header['incentive_fee']].receiver() == Addr(cfg.incentive_fee_address),
-        Gtxn[cfg.swap_header['incentive_fee']].amount() == Int(cfg.incentive_fee_amount),
-        Gtxn[cfg.swap_header['requested_algo_xfer']].amount() == Int(cfg.requested_algo_amount),
-        Gtxn[cfg.swap_header['requested_algo_xfer']].receiver() == Addr(cfg.swap_creator),
+        Gtxn[cfg.swap_header["incentive_fee"]].receiver()
+        == Addr(INCENTIVE_FEE_ADDRESS),
+        Gtxn[cfg.swap_header["incentive_fee"]].amount() == Int(INCENTIVE_FEE_AMOUNT),
+        Gtxn[cfg.swap_header["requested_algo_xfer"]].amount()
+        == Int(cfg.requested_algo_amount),
+        Gtxn[cfg.swap_header["requested_algo_xfer"]].receiver()
+        == Addr(cfg.swap_creator),
         *offered_multi_asa_xfer_asset_ids,
         *offered_multi_asa_xfer_asset_amounts,
         *offered_multi_asa_xfer_asset_receiver,
@@ -260,12 +264,14 @@ def multi_asa_close_swap(cfg: MultiAsaSwapConfig):
         asa += 1
 
     multi_asa_close_asset_receiver = [
-        Gtxn[len(cfg.close_swap_header) + asa].asset_receiver() == Addr(cfg.swap_creator)
+        Gtxn[len(cfg.close_swap_header) + asa].asset_receiver()
+        == Addr(cfg.swap_creator)
         for asa in range(cfg.body_size)
     ]
 
     multi_asa_close_asset_close_to = [
-        Gtxn[len(cfg.close_swap_header) + asa].asset_close_to() == Addr(cfg.swap_creator)
+        Gtxn[len(cfg.close_swap_header) + asa].asset_close_to()
+        == Addr(cfg.swap_creator)
         for asa in range(cfg.body_size)
     ]
 
@@ -276,8 +282,8 @@ def multi_asa_close_swap(cfg: MultiAsaSwapConfig):
     )
 
     swap_close_precondition = And(
-        Gtxn[cfg.close_swap_bottom['close_out']].fee() <= Int(cfg.max_fee),
-        Gtxn[cfg.close_swap_bottom['close_out']].rekey_to() == Global.zero_address(),
+        Gtxn[cfg.close_swap_bottom["close_out"]].fee() <= Int(cfg.max_fee),
+        Gtxn[cfg.close_swap_bottom["close_out"]].rekey_to() == Global.zero_address(),
     )
 
     return And(
@@ -286,11 +292,12 @@ def multi_asa_close_swap(cfg: MultiAsaSwapConfig):
         *multi_asa_close_asset_ids,
         *multi_asa_close_asset_receiver,
         *multi_asa_close_asset_close_to,
-        Gtxn[cfg.close_swap_bottom['close_out']].receiver() == Addr(cfg.swap_creator),
-        Gtxn[cfg.close_swap_bottom['close_out']].close_remainder_to() == Addr(cfg.swap_creator),
-        Gtxn[cfg.close_swap_bottom['proof']].sender() == Addr(cfg.swap_creator),
-        Gtxn[cfg.close_swap_bottom['proof']].receiver() == Addr(cfg.swap_creator),
-        Gtxn[cfg.close_swap_bottom['proof']].amount() == Int(0),
+        Gtxn[cfg.close_swap_bottom["close_out"]].receiver() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom["close_out"]].close_remainder_to()
+        == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom["proof"]].sender() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom["proof"]].receiver() == Addr(cfg.swap_creator),
+        Gtxn[cfg.close_swap_bottom["proof"]].amount() == Int(0),
     )
 
 
@@ -301,8 +308,8 @@ def compile_stateless(program):
 if __name__ == "__main__":
 
     offered_asa_amounts = {
-        '1': 10,
-        '2': 10,
+        "1": 10,
+        "2": 10,
     }
 
     config = MultiAsaSwapConfig(
@@ -310,9 +317,7 @@ if __name__ == "__main__":
         offered_asa_amounts=offered_asa_amounts,
         requested_algo_amount=1_000_000,
         max_fee=1_000,
-        optin_funding_amount=210_000,
-        incentive_fee_amount=10_000,
-        incentive_fee_address="2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
+        optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * len(offered_asa_amounts),
     )
 
     print(compile_stateless(multi_asa_swapper(config)))
