@@ -1,15 +1,15 @@
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.algoworldswapper import (
-    INCENTIVE_FEE_ADDRESS,
+from src.asa_to_asa_swapper import (
     OPTIN_FUNDING_AMOUNT,
-    SwapConfig,
+    AsaToAsaSwapConfig,
     compile_stateless,
     swapper,
 )
 from tests.models import LogicSigWallet, Wallet
-from tests.utils import (
+from tests.common import (
+    INCENTIVE_FEE_ADDRESS,
     asa_to_asa_swap,
     close_swap,
     fund_wallet,
@@ -84,12 +84,14 @@ def swapper_account(
     swap_creator: Wallet, offered_asa_idx: int, requested_asa_idx: int
 ) -> LogicSigWallet:
 
-    cfg = SwapConfig(
+    cfg = AsaToAsaSwapConfig(
         swap_creator=swap_creator.public_key,
         offered_asa_id=offered_asa_idx,
         offered_asa_amount=1,
         requested_asa_id=requested_asa_idx,
         requested_asa_amount=1,
+        incentive_fee_address="RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A",
+        incentive_fee_amount=10_000,
     )
 
     swapper_lsig = logic_signature(compile_stateless(swapper(cfg)))
@@ -110,7 +112,8 @@ def test_swapper_asa_optin(
         swapper_opt_in(
             swap_creator=swap_user,
             swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
+            assets={offered_asa_idx: 0},
+            funding_amount=OPTIN_FUNDING_AMOUNT,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -118,7 +121,7 @@ def test_swapper_asa_optin(
         swapper_opt_in(
             swap_creator=swap_creator,
             swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
+            assets={offered_asa_idx: 0},
             funding_amount=OPTIN_FUNDING_AMOUNT - 1,
         )
 
@@ -127,7 +130,8 @@ def test_swapper_asa_optin(
         swapper_opt_in(
             swap_creator=swap_creator,
             swapper_account=swapper_account,
-            asset_id=other_asa_idx,
+            assets={other_asa_idx: 0},
+            funding_amount=OPTIN_FUNDING_AMOUNT,
         )
 
     with pytest.raises(AlgodHTTPError):
@@ -135,15 +139,16 @@ def test_swapper_asa_optin(
         swapper_opt_in(
             swap_creator=swap_creator,
             swapper_account=swapper_account,
-            asset_id=offered_asa_idx,
-            asset_amount=1,
+            assets={offered_asa_idx: 1},
+            funding_amount=OPTIN_FUNDING_AMOUNT,
         )
 
     # Happy path
     swapper_opt_in(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
+        assets={offered_asa_idx: 0},
+        funding_amount=OPTIN_FUNDING_AMOUNT,
     )
 
 
@@ -163,7 +168,8 @@ def test_swapper_asa_swap(
     swapper_opt_in(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
+        assets={offered_asa_idx: 0},
+        funding_amount=OPTIN_FUNDING_AMOUNT,
     )
 
     swapper_deposit(
@@ -177,12 +183,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
+            offered_assets={offered_asa_idx: 1},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
-            requested_asset_id=other_asa_idx,
-            requested_asset_amt=1,
+            requested_assets={other_asa_idx: 1},
             incentive_wallet=incentive_wallet,
         )
 
@@ -191,12 +195,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=0,
+            offered_assets={offered_asa_idx: 0},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+            requested_assets={requested_asa_idx: 1},
             incentive_wallet=incentive_wallet,
         )
 
@@ -205,12 +207,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
+            offered_assets={offered_asa_idx: 1},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_creator,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=0,
+            requested_assets={requested_asa_idx: 0},
             incentive_wallet=incentive_wallet,
         )
 
@@ -219,12 +219,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
+            offered_assets={offered_asa_idx: 1},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+            requested_assets={requested_asa_idx: 1},
             incentive_wallet=incentive_wallet,
         )
 
@@ -233,12 +231,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
+            offered_assets={offered_asa_idx: 1},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+            requested_assets={requested_asa_idx: 1},
             incentive_wallet=swap_user,
         )
 
@@ -247,12 +243,10 @@ def test_swapper_asa_swap(
         asa_to_asa_swap(
             offered_asset_sender=swapper_account,
             offered_asset_receiver=swap_user,
-            offered_asset_id=offered_asa_idx,
-            offered_asset_amt=1,
+            offered_assets={offered_asa_idx: 1},
             requested_asset_sender=swap_user,
             requested_asset_receiver=swap_user,
-            requested_asset_id=requested_asa_idx,
-            requested_asset_amt=1,
+            requested_assets={requested_asa_idx: 1},
             incentive_wallet=incentive_wallet,
             incentive_amount=2000,
         )
@@ -261,12 +255,10 @@ def test_swapper_asa_swap(
     asa_to_asa_swap(
         offered_asset_sender=swapper_account,
         offered_asset_receiver=swap_user,
-        offered_asset_id=offered_asa_idx,
-        offered_asset_amt=1,
+        offered_assets={offered_asa_idx: 1},
         requested_asset_sender=swap_user,
         requested_asset_receiver=swap_creator,
-        requested_asset_id=requested_asa_idx,
-        requested_asset_amt=1,
+        requested_assets={requested_asa_idx: 1},
         incentive_wallet=incentive_wallet,
     )
 
@@ -284,7 +276,7 @@ def test_swapper_close_swap(
     swapper_opt_in(
         swap_creator=swap_creator,
         swapper_account=swapper_account,
-        asset_id=offered_asa_idx,
+        assets={offered_asa_idx: 0},
         funding_amount=OPTIN_FUNDING_AMOUNT * 2,
     )
 

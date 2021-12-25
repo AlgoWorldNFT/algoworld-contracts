@@ -1,27 +1,30 @@
 import dataclasses
+import sys
 
 from pyteal import Addr, And, Cond, Expr, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
+from src.utils import parse_params
+
 """
-Multi ASA Atomic Swapper
+Multi ASA to ALGO Atomic Swapper
 1. Multi ASA Opt-In
 2. Offered Multi ASA / Requested ALGO Swap
 3. Close Multi ASA Swap
 """
 
 TEAL_VERSION = 5
-INCENTIVE_FEE_AMOUNT = 10_000
-INCENTIVE_FEE_ADDRESS = "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A"
 BASE_OPTIN_FUNDING_AMOUNT = 210000
 
 
 @dataclasses.dataclass
-class MultiAsaSwapConfig:
+class AsasToAlgoSwapConfig:
     swap_creator: str
     offered_asa_amounts: dict[str, int]
     requested_algo_amount: int
     max_fee: int
     optin_funding_amount: int
+    incentive_fee_address: str
+    incentive_fee_amount: int
 
     def __post_init__(self):
         assert len(self.offered_asa_amounts) <= 5
@@ -50,7 +53,7 @@ class MultiAsaSwapConfig:
         )
 
 
-def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
+def multi_asa_swapper(cfg: AsasToAlgoSwapConfig) -> Expr:
 
     multi_asa_optin_type_check = [
         Gtxn[len(cfg.optin_header) + asa].type_enum() == TxnType.AssetTransfer
@@ -94,7 +97,7 @@ def multi_asa_swapper(cfg: MultiAsaSwapConfig) -> Expr:
     )
 
 
-def multi_asa_optin(cfg: MultiAsaSwapConfig):
+def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
 
     # Code repetition of `for asa in range(cfg.body_size)` for every check
     # has been kept in favor of readability. A unique for loop would be more
@@ -171,7 +174,7 @@ def multi_asa_optin(cfg: MultiAsaSwapConfig):
     )
 
 
-def multi_asa_swap(cfg: MultiAsaSwapConfig):
+def multi_asa_swap(cfg: AsasToAlgoSwapConfig):
 
     offered_multi_asa_xfer_max_fee = [
         Gtxn[len(cfg.swap_header) + asa].fee() <= Int(cfg.max_fee)
@@ -221,8 +224,9 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
     return And(
         offered_multi_asa_xfer_precondition,
         Gtxn[cfg.swap_header["incentive_fee"]].receiver()
-        == Addr(INCENTIVE_FEE_ADDRESS),
-        Gtxn[cfg.swap_header["incentive_fee"]].amount() == Int(INCENTIVE_FEE_AMOUNT),
+        == Addr(cfg.incentive_fee_address),
+        Gtxn[cfg.swap_header["incentive_fee"]].amount()
+        == Int(cfg.incentive_fee_amount),
         Gtxn[cfg.swap_header["requested_algo_xfer"]].amount()
         == Int(cfg.requested_algo_amount),
         Gtxn[cfg.swap_header["requested_algo_xfer"]].receiver()
@@ -233,7 +237,7 @@ def multi_asa_swap(cfg: MultiAsaSwapConfig):
     )
 
 
-def multi_asa_close_swap(cfg: MultiAsaSwapConfig):
+def multi_asa_close_swap(cfg: AsasToAlgoSwapConfig):
 
     multi_asa_close_max_fee = [
         Gtxn[len(cfg.close_swap_header) + asa].fee() <= Int(cfg.max_fee)
@@ -301,15 +305,20 @@ def compile_stateless(program):
 
 
 if __name__ == "__main__":
+    offered_asas = {"1": 10, "2": 10}
 
-    offered_asa_amounts = {"1": 10, "2": 10}
+    params = {
+        "swap_creator": "2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
+        "offered_asa_amounts": offered_asas,
+        "requested_algo_amount": 1_000_000,
+        "max_fee": 1_000,
+        "optin_funding_amount": BASE_OPTIN_FUNDING_AMOUNT * len(offered_asas),
+        "incentive_fee_address": "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A",
+        "incentive_fee_amount": 10_000,
+    }
 
-    config = MultiAsaSwapConfig(
-        swap_creator="2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
-        offered_asa_amounts=offered_asa_amounts,
-        requested_algo_amount=1_000_000,
-        max_fee=1_000,
-        optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * len(offered_asa_amounts),
-    )
+    # Overwrite params if sys.argv[1] is passed
+    if len(sys.argv) > 1:
+        params = parse_params(sys.argv[1], params)
 
-    print(compile_stateless(multi_asa_swapper(config)))
+    print(compile_stateless(multi_asa_swap(AsasToAlgoSwapConfig(**params))))

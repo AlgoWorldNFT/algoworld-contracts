@@ -17,6 +17,14 @@ The following repository hosts the source codes for AlgoWorld Swapper stateless 
 -   [Algorand Sandbox](https://github.com/algorand/sandbox)
 -   [Docker](https://www.docker.com/)
 
+## Overview
+
+AlgoWorld currently offers two different types of stateless smart contracts:
+
+-   The ASA to ASA swap. Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+
+-   The ASAs to ALGO swap. Allows performing a swap of up to single ASA of specified amount to any other single ASA of specified amount.
+
 ## Installation
 
 This section assumes that poetry and pre-commit are installed and executed from the root folder of this repository.

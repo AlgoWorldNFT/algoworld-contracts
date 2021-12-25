@@ -6,7 +6,7 @@ from pyteal import Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType, compileTea
 from src.utils import parse_params
 
 """
-ASA Atomic Swapper
+ASA to ASA Atomic Swapper
 1. Offered ASA Opt-In
 2. Offered ASA / Required ASA Swap
 3. Close Swap
@@ -16,8 +16,6 @@ TEAL_VERSION = 5
 
 MAX_FEE = Int(1000)
 OPTIN_FUNDING_AMOUNT = 210000
-INCENTIVE_FEE_AMOUNT = 10000
-INCENTIVE_FEE_ADDRESS = "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A"
 
 ASA_OPTIN_GSIZE = Int(2)
 OPTIN_FEE = 0
@@ -35,15 +33,17 @@ PROOF = 2
 
 
 @dataclasses.dataclass
-class SwapConfig:
+class AsaToAsaSwapConfig:
     swap_creator: str
     offered_asa_id: int
     offered_asa_amount: int
     requested_asa_id: int
     requested_asa_amount: int
+    incentive_fee_address: str
+    incentive_fee_amount: int
 
 
-def swapper(cfg: SwapConfig):
+def swapper(cfg: AsaToAsaSwapConfig):
 
     is_asa_optin = And(
         Global.group_size() == ASA_OPTIN_GSIZE,
@@ -72,7 +72,7 @@ def swapper(cfg: SwapConfig):
     )
 
 
-def asa_optin(cfg: SwapConfig):
+def asa_optin(cfg: AsaToAsaSwapConfig):
 
     optin_fee_precondition = And(
         Gtxn[OPTIN_FEE].fee() <= MAX_FEE,
@@ -99,7 +99,7 @@ def asa_optin(cfg: SwapConfig):
     )
 
 
-def asa_swap(cfg: SwapConfig):
+def asa_swap(cfg: AsaToAsaSwapConfig):
 
     offered_asa_xfer_precondition = And(
         Gtxn[OFFERED_ASA_XFER].fee() <= MAX_FEE,
@@ -121,12 +121,12 @@ def asa_swap(cfg: SwapConfig):
         Gtxn[REQUESTED_ASA_XFER].asset_amount() == Int(cfg.requested_asa_amount),
         Gtxn[OFFERED_ASA_XFER].asset_receiver() == Gtxn[REQUESTED_ASA_XFER].sender(),
         Gtxn[REQUESTED_ASA_XFER].asset_receiver() == Addr(cfg.swap_creator),
-        Gtxn[INCENTIVE_FEE].receiver() == Addr(INCENTIVE_FEE_ADDRESS),
-        Gtxn[INCENTIVE_FEE].amount() == Int(INCENTIVE_FEE_AMOUNT),
+        Gtxn[INCENTIVE_FEE].receiver() == Addr(cfg.incentive_fee_address),
+        Gtxn[INCENTIVE_FEE].amount() == Int(cfg.incentive_fee_amount),
     )
 
 
-def close_swap(cfg: SwapConfig):
+def close_swap(cfg: AsaToAsaSwapConfig):
 
     asa_close_precondition = And(
         Gtxn[ASA_CLOSE].fee() <= MAX_FEE,
@@ -164,10 +164,12 @@ if __name__ == "__main__":
         "offered_asa_amount": 1,
         "requested_asa_id": 69,
         "requested_asa_amount": 1,
+        "incentive_fee_address": "RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A",
+        "incentive_fee_amount": 10_000,
     }
 
     # Overwrite params if sys.argv[1] is passed
     if len(sys.argv) > 1:
         params = parse_params(sys.argv[1], params)
 
-    print(compile_stateless(swapper(SwapConfig(**params))))
+    print(compile_stateless(swapper(AsaToAsaSwapConfig(**params))))
