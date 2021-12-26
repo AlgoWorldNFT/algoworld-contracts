@@ -251,6 +251,18 @@ def test_swapper_asa_swap(
             incentive_amount=2000,
         )
 
+    with pytest.raises(AlgodHTTPError):
+        print("\n --- Swap fails with wrong requested asa sender")
+        asa_to_asa_swap(
+            offered_asset_sender=swapper_account,
+            offered_asset_receiver=swap_user,
+            offered_assets={offered_asa_idx: 1},
+            requested_asset_sender=swapper_account,
+            requested_asset_receiver=swap_creator,
+            requested_assets={requested_asa_idx: 1},
+            incentive_wallet=incentive_wallet,
+        )
+
     # Happy path
     asa_to_asa_swap(
         offered_asset_sender=swapper_account,
@@ -315,7 +327,7 @@ def test_swapper_close_swap(
         )
 
     with pytest.raises(AlgodHTTPError):
-        print("\n --- Close swap fails with wrong asset receiver")
+        print("\n --- Close swap fails with wrong assets")
         close_swap(
             asset_sender=swapper_account,
             asset_receiver=swap_creator,
