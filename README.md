@@ -21,9 +21,9 @@ The following repository hosts the source codes for AlgoWorld Swapper stateless 
 
 AlgoWorld currently offers two different types of stateless smart contracts:
 
--   The ASA to ASA swap. Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+-   [ASA to ASA swap | 🎴↔️🎴](./src/asa_to_asa_swapper.py): <br> Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
 
--   The ASAs to ALGO swap. Allows performing a swap of up to single ASA of specified amount to any other single ASA of specified amount.
+-   [ASAs to ALGO swap | 🎴🎴🎴↔️💰](./src/asas_to_algo_swapper.py): <br> Allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
 
 ## Installation
 
