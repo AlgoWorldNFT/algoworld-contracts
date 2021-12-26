@@ -146,6 +146,7 @@ def asa_swap(cfg: AsaToAsaSwapConfig):
         Gtxn[OFFERED_ASA_XFER].asset_receiver() == Gtxn[REQUESTED_ASA_XFER].sender(),
         Gtxn[REQUESTED_ASA_XFER].asset_receiver() == Addr(cfg.swap_creator),
         Gtxn[INCENTIVE_FEE].receiver() == Addr(cfg.incentive_fee_address),
+        Gtxn[INCENTIVE_FEE].sender() == Gtxn[REQUESTED_ASA_XFER].sender(),
         Gtxn[INCENTIVE_FEE].amount() == Int(cfg.incentive_fee_amount),
     )
 

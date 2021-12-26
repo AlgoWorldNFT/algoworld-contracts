@@ -1,0 +1,16 @@
+{
+    "extends": ["config:base"],
+    "ignoreDeps": [],
+    "schedule": "before 3am on the first day of the month",
+    "assignees": ["aorumbayev"],
+    "baseBranches": ["main"],
+    "separateMajorMinor": true,
+    "rebaseStalePrs": true,
+    "lockFileMaintenance": {
+        "enabled": true,
+        "extends": "schedule:monthly"
+    },
+    "docker": {
+        "enabled": true
+    }
+}
