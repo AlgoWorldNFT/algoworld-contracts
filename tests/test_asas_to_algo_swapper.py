@@ -7,19 +7,19 @@ from src.asas_to_algo_swapper import (
     compile_stateless,
     multi_asa_swapper,
 )
-from tests.models import LogicSigWallet, Wallet
 from tests.common import (
     INCENTIVE_FEE_ADDRESS,
+    asa_to_algo_swap,
     close_swap,
     fund_wallet,
     generate_wallet,
     logic_signature,
     mint_asa,
-    asa_to_algo_swap,
     opt_in_asa,
     swapper_deposit,
     swapper_opt_in,
 )
+from tests.models import LogicSigWallet, Wallet
 
 
 @pytest.fixture()

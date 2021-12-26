@@ -7,7 +7,6 @@ from src.asa_to_asa_swapper import (
     compile_stateless,
     swapper,
 )
-from tests.models import LogicSigWallet, Wallet
 from tests.common import (
     INCENTIVE_FEE_ADDRESS,
     asa_to_asa_swap,
@@ -20,6 +19,7 @@ from tests.common import (
     swapper_deposit,
     swapper_opt_in,
 )
+from tests.models import LogicSigWallet, Wallet
 
 
 @pytest.fixture()
