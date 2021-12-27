@@ -142,7 +142,7 @@ def test_multi_asa_optin(
         swapper_opt_in(
             swap_creator=swap_creator,
             swapper_account=swapper_account,
-            assets={other_asa_idx: 0},
+            assets={other_asa_idx: 0, other_asa_idx: 0},
             funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
         )
 
