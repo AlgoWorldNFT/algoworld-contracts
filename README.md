@@ -10,6 +10,8 @@
 
 The following repository hosts the source codes for AlgoWorld Swapper stateless ASC1 smart contracts.
 
+_**⚠️ NOTE: These contracts are not formally audited by accredited third parties. However, contracts are a basis for certain functionality on the AlgoWorldExplorer.io platform and were created in collaboration with Solution Architect from Algorand (credits @cusma). Code is provided under MIT license.**_
+
 ## Prerequisites
 
 -   [poetry](https://python-poetry.org/)
