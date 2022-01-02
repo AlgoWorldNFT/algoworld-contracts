@@ -19,7 +19,7 @@ _**⚠️ NOTE: These contracts are not formally audited by accredited third par
 -   [Algorand Sandbox](https://github.com/algorand/sandbox)
 -   [Docker](https://www.docker.com/)
 
-## Overview
+## 🚀 Overview
 
 AlgoWorld currently offers two different types of stateless smart contracts:
 
@@ -27,7 +27,7 @@ AlgoWorld currently offers two different types of stateless smart contracts:
 
 -   [ASAs to ALGO swap | 🎴🎴🎴↔️💰](./src/asas_to_algo_swapper.py): <br> Allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
 
-## Installation
+## ⚙️ Installation
 
 This section assumes that poetry and pre-commit are installed and executed from the root folder of this repository.
 
@@ -50,7 +50,7 @@ poetry shell # activate virtual env
 pre-commit install
 ```
 
-## Testing
+## 🧪 Testing
 
 Testing assumes that docker and algorand sandbox are both up and running. The sandbox repository has to either be available at `../sandbox` or set via `ALGORAND_SANBOX_DIR`.
 
@@ -58,6 +58,14 @@ Testing assumes that docker and algorand sandbox are both up and running. The sa
 (.venv) pytest
 ```
 
-## Contribution guideline
+## 🚧 Contribution guideline
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+## ⭐️ Stargazers
+
+Special thanks to everyone who forked or starred the repository ❤️
+
+[![Stargazers repo roster for @AlgoWorldNFT/algoworld-swapper](https://reporoster.com/stars/dark/AlgoWorldNFT/algoworld-swapper)](https://github.com/AlgoWorldNFT/algoworld-swapper/stargazers)
+
+[![Forkers repo roster for @AlgoWorldNFT/algoworld-swapper](https://reporoster.com/forks/dark/AlgoWorldNFT/algoworld-swapper)](https://github.com/AlgoWorldNFT/algoworld-swapper/network/members)
