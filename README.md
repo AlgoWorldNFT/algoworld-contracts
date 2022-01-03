@@ -3,7 +3,9 @@
 <p align="center">
     <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" alt="Frontend" /></a>
     <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" alt="Javadoc" /></a>
-    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" alt="AlgoWorldExplorer" /></a>
+    <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" alt="AlgoWorldExplorer" /></a>
+    <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-swapper&right_color=green" /></a>
+    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml/badge.svg" alt="AlgoWorldExplorer" /></a>
 </p>
 
 ## 📃 About
