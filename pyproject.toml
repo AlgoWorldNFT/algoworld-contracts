@@ -1,21 +1,30 @@
 [tool.poetry]
-name = "algorand-contracts-testing"
-version = "0.1.0"
+name = "algoworld_swapper"
+version = "1.1.0"
 description = ""
-authors = ["MillionAlgosFather <info@algoworld.io>"]
+authors = ["AlgoWorld <info@algoworld.io>"]
+keywords = ["algoworld", "algorand", "blockchain", "pyteal", "smart contracts"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/AlgoWorldNFT/algoworld-swapper"
+repository = "https://github.com/AlgoWorldNFT/algoworld-swapper"
+include = [
+    "LICENSE",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 pyteal = "^0.9.0"
 py-algorand-sdk = "^1.8.0"
-pytest = "^6.2.5"
-pytest-xdist = "^2.4.0"
 PyYAML = "^6.0"
 pydantic = "^1.8.2"
-pytest-depends = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.9b0", allow-prereleases = true}
+tealer = {git = "https://github.com/AlgoWorldNFT/tealer.git", rev = "feature/cicd"}
+pytest = "^6.2.5"
+pytest-xdist = "^2.4.0"
+pytest-depends = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

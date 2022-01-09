@@ -1,18 +1,19 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.1.0
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 21.12b0
     hooks:
     -   id: black
 - repo: https://github.com/pycqa/isort
-  rev: 5.9.3
+  rev: 5.10.1
   hooks:
     - id: isort
+      args: ["--profile", "black"]
 - repo: https://github.com/myint/autoflake
   rev: v1.4
   hooks:
@@ -23,3 +24,8 @@ repos:
         - --remove-all-unused-imports
         - --expand-star-imports
         - --ignore-init-module-imports
+- repo: https://github.com/PyCQA/bandit
+  rev: '1.7.1'
+  hooks:
+    - id: bandit
+      args: [--skip, "B101", --exclude, "tests"]
