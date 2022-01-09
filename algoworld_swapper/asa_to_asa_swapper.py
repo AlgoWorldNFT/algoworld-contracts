@@ -27,7 +27,7 @@ import sys
 
 from pyteal import Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
-from src.utils import parse_params
+from algoworld_swapper.utils import parse_params
 
 """
 ASA to ASA Atomic Swapper
