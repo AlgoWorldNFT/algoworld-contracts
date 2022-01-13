@@ -25,12 +25,12 @@ from algosdk.future.transaction import (
     write_to_file,
 )
 from algosdk.v2client import algod, indexer
-from src.asas_to_algo_swapper import (
+
+from algoworld_swapper.asas_to_algo_swapper import (
     AsasToAlgoSwapConfig,
     compile_stateless,
     multi_asa_swapper,
 )
-
 from tests.common.constants import INCENTIVE_FEE_AMOUNT
 from tests.models import LogicSigWallet, Wallet
 
@@ -339,7 +339,6 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
         url="https://path/to/my/asset/details",
         decimals=decimals,
     )
-    print(txn)
     # Sign with secret key of creator
     stxn = txn.sign(sender_pass)
 
