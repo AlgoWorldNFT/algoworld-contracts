@@ -1,25 +1,25 @@
+from random import randint
+
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.asas_to_algo_swapper import (
-    BASE_OPTIN_FUNDING_AMOUNT,
-    AsasToAlgoSwapConfig,
-    compile_stateless,
-    multi_asa_swapper,
-)
+from src.asas_to_algo_swapper import BASE_OPTIN_FUNDING_AMOUNT
 from tests.common import (
     INCENTIVE_FEE_ADDRESS,
+    AsasToAlgoSwapConfig,
     asa_to_algo_swap,
     close_swap,
     fund_wallet,
+    generate_swapper,
     generate_wallet,
-    logic_signature,
     mint_asa,
     opt_in_asa,
     swapper_deposit,
     swapper_opt_in,
 )
 from tests.models import LogicSigWallet, Wallet
+
+#### Fixtures
 
 
 @pytest.fixture()
@@ -91,23 +91,44 @@ def other_asa_idx(swap_user: Wallet) -> int:
 
 
 @pytest.fixture()
+def random_offered_asas(swap_creator: Wallet) -> int:
+    asas = []
+    for i in range(0, 3):
+        amount = randint(1, 6000)
+        decimals = randint(0, 6)
+        asa_id = mint_asa(
+            swap_creator.public_key,
+            swap_creator.private_key,
+            asset_name=f"Card {i}",
+            total=randint(1, 6000),
+            decimals=randint(0, 6),
+        )
+        asas.append({"id": asa_id, "amount": amount, "decimals": decimals})
+        print(
+            f"\n --- ASA {asa_id} minted with amount {amount} and decimals {decimals}"
+        )
+    return asas
+
+
+@pytest.fixture()
 def swapper_account(
     swap_creator: Wallet, offered_asa_a_idx: int, offered_asa_b_idx: int
 ) -> LogicSigWallet:
 
-    cfg = AsasToAlgoSwapConfig(
-        swap_creator=swap_creator.public_key,
-        offered_asa_amounts={str(offered_asa_a_idx): 1, str(offered_asa_b_idx): 1},
-        requested_algo_amount=1_000_000,
-        max_fee=1_000,
-        optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
-        incentive_fee_address="RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A",
-        incentive_fee_amount=10_000,
+    return generate_swapper(
+        AsasToAlgoSwapConfig(
+            swap_creator=swap_creator.public_key,
+            offered_asa_amounts={str(offered_asa_a_idx): 1, str(offered_asa_b_idx): 1},
+            requested_algo_amount=1_000_000,
+            max_fee=1_000,
+            optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * 2,
+            incentive_fee_address="RJVRGSPGSPOG7W3V7IMZZ2BAYCABW3YC5MWGKEOPAEEI5ZK5J2GSF6Y26A",
+            incentive_fee_amount=10_000,
+        )
     )
 
-    swapper_lsig = logic_signature(compile_stateless(multi_asa_swapper(cfg)))
 
-    return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
+#### Tests
 
 
 def test_multi_asa_optin(
@@ -278,6 +299,63 @@ def test_swapper_asa_swap(
         offered_assets_receiver=swap_user,
         offered_assets={offered_asa_a_idx: 1, offered_asa_b_idx: 1},
         requested_algo_amount=1_000_000,
+        requested_algo_sender=swap_user,
+        requested_algo_receiver=swap_creator,
+        incentive_wallet=incentive_wallet,
+    )
+
+
+def test_swapper_random_asas_swap(
+    swap_creator: Wallet,
+    swap_user: Wallet,
+    incentive_wallet: Wallet,
+    random_offered_asas: list[dict[int, dict[str, str]]],
+):
+    """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap.
+    """
+
+    asa_ids = [asa["id"] for asa in random_offered_asas]
+    offered_asas_opt_ins = {}
+    offered_asas = {}
+    incentive_fee = 10_000
+    requested_algo_amount = 1_000_000
+
+    for asa in random_offered_asas:
+        asa_id = asa["id"]
+        offered_asas[asa_id] = asa["amount"] // 2  # send half of offered asas available
+        offered_asas_opt_ins[asa_id] = 0
+
+    swapper_account = generate_swapper(
+        AsasToAlgoSwapConfig(
+            swap_creator=swap_creator.public_key,
+            offered_asa_amounts=offered_asas,
+            requested_algo_amount=requested_algo_amount,
+            max_fee=1_000,
+            optin_funding_amount=BASE_OPTIN_FUNDING_AMOUNT * len(offered_asas),
+            incentive_fee_address=incentive_wallet.public_key,
+            incentive_fee_amount=incentive_fee,
+        )
+    )
+
+    opt_in_asa(swap_user, asa_ids)
+
+    swapper_opt_in(
+        swap_creator=swap_creator,
+        swapper_account=swapper_account,
+        assets=offered_asas_opt_ins,
+        funding_amount=BASE_OPTIN_FUNDING_AMOUNT * len(offered_asas),
+    )
+
+    swapper_deposit(
+        swap_creator=swap_creator, swapper_account=swapper_account, assets=offered_asas
+    )
+
+    # Happy path
+    asa_to_algo_swap(
+        offered_assets_sender=swapper_account,
+        offered_assets_receiver=swap_user,
+        offered_assets=offered_asas,
+        requested_algo_amount=requested_algo_amount,
         requested_algo_sender=swap_user,
         requested_algo_receiver=swap_creator,
         incentive_wallet=incentive_wallet,

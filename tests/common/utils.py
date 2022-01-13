@@ -25,6 +25,11 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
+from src.asas_to_algo_swapper import (
+    AsasToAlgoSwapConfig,
+    compile_stateless,
+    multi_asa_swapper,
+)
 from tests.common.constants import INCENTIVE_FEE_AMOUNT
 from tests.models import LogicSigWallet, Wallet
 
@@ -190,6 +195,14 @@ def generate_stateless_contract(compiled_teal: str) -> LogicSigWallet:
     return LogicSigWallet(logic_sig, escrow_address)  # type: ignore
 
 
+def generate_swapper(cfg: AsasToAlgoSwapConfig):
+    swapper_lsig = logic_signature(compile_stateless(multi_asa_swapper(cfg)))
+    return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
+
+
+#### Functions
+
+
 def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
     """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
@@ -259,6 +272,8 @@ def transaction_info(transaction_id):
 
 # UTILITY
 ################################################################
+
+
 def _compile_source(source):
     """Compile and return teal binary code."""
     compile_response = _algod_client().compile(source)
