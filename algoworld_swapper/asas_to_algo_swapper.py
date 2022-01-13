@@ -179,18 +179,12 @@ def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
         Gtxn[cfg.optin_header["fee"]].close_remainder_to() == Global.zero_address(),
     )
 
-    multi_asa_optin_precondition = And(
-        *multi_asa_optin_max_fee,
-        *multi_asa_optin_rekey_to,
-        *multi_asa_optin_asset_sender,
-        *multi_asa_optin_asset_close_to,
-    )
-
     return And(
-        optin_funding_precondition,
-        multi_asa_optin_precondition,
         Gtxn[cfg.optin_header["fee"]].sender() == Addr(cfg.swap_creator),
         Gtxn[cfg.optin_header["fee"]].amount() >= Int(cfg.optin_funding_amount),
+        Gtxn[cfg.optin_header["fee"]].fee() <= Int(cfg.max_fee),
+        Gtxn[cfg.optin_header["fee"]].rekey_to() == Global.zero_address(),
+        Gtxn[cfg.optin_header["fee"]].close_remainder_to() == Global.zero_address(),
         *multi_asa_optin_senders,
         *multi_asa_optin_xfer_asset,
         *multi_asa_optin_assets_receivers,
