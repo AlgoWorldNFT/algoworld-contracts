@@ -6,6 +6,7 @@ import pty
 import subprocess
 import time
 from pathlib import Path
+from random import randint
 from typing import Dict, List
 
 import yaml
@@ -200,6 +201,25 @@ def generate_swapper(cfg: AsasToAlgoSwapConfig):
     return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
 
 
+def generate_random_offered_asas(swap_creator: Wallet) -> int:
+    asas = []
+    for i in range(0, 5):
+        amount = randint(1, 6000)
+        decimals = randint(0, 10)
+        asa_id = mint_asa(
+            swap_creator.public_key,
+            swap_creator.private_key,
+            asset_name=f"Card {i}",
+            total=amount,
+            decimals=decimals,
+        )
+        asas.append({"id": asa_id, "amount": amount, "decimals": decimals})
+        print(
+            f"\n --- ASA {asa_id} minted with amount {amount} and decimals {decimals}"
+        )
+    return asas
+
+
 #### Functions
 
 
@@ -319,6 +339,7 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
         url="https://path/to/my/asset/details",
         decimals=decimals,
     )
+    print(txn)
     # Sign with secret key of creator
     stxn = txn.sign(sender_pass)
 

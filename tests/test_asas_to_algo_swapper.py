@@ -1,5 +1,3 @@
-from random import randint
-
 import pytest
 from algosdk.error import AlgodHTTPError
 
@@ -10,6 +8,7 @@ from tests.common import (
     asa_to_algo_swap,
     close_swap,
     fund_wallet,
+    generate_random_offered_asas,
     generate_swapper,
     generate_wallet,
     mint_asa,
@@ -88,26 +87,6 @@ def other_asa_idx(swap_user: Wallet) -> int:
         total=1,
         decimals=0,
     )
-
-
-@pytest.fixture()
-def random_offered_asas(swap_creator: Wallet) -> int:
-    asas = []
-    for i in range(0, 3):
-        amount = randint(1, 6000)
-        decimals = randint(0, 6)
-        asa_id = mint_asa(
-            swap_creator.public_key,
-            swap_creator.private_key,
-            asset_name=f"Card {i}",
-            total=randint(1, 6000),
-            decimals=randint(0, 6),
-        )
-        asas.append({"id": asa_id, "amount": amount, "decimals": decimals})
-        print(
-            f"\n --- ASA {asa_id} minted with amount {amount} and decimals {decimals}"
-        )
-    return asas
 
 
 @pytest.fixture()
@@ -306,14 +285,12 @@ def test_swapper_asa_swap(
 
 
 def test_swapper_random_asas_swap(
-    swap_creator: Wallet,
-    swap_user: Wallet,
-    incentive_wallet: Wallet,
-    random_offered_asas: list[dict[int, dict[str, str]]],
+    swap_creator: Wallet, swap_user: Wallet, incentive_wallet: Wallet
 ):
     """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap.
     """
 
+    random_offered_asas = generate_random_offered_asas(swap_creator)
     asa_ids = [asa["id"] for asa in random_offered_asas]
     offered_asas_opt_ins = {}
     offered_asas = {}
