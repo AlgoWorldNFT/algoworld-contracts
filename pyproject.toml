@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "algoworld_swapper"
-version = "1.1.0"
+version = "1.1.1"
 description = ""
 authors = ["AlgoWorld <info@algoworld.io>"]
 keywords = ["algoworld", "algorand", "blockchain", "pyteal", "smart contracts"]
