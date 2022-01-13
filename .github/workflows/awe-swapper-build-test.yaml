@@ -6,6 +6,9 @@ jobs:
   build-backend:
     name: Build & test swapper stateless contract
     runs-on: ubuntu-latest
+    env:
+      COVERAGE_SINGLE: 60
+      COVERAGE_TOTAL: 60
 
     steps:
     - name: Cancel Previous Runs
@@ -45,6 +48,16 @@ jobs:
     - name: Delay before testing
       run: sleep 60
       if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
+
+    - name: pytester-cov
+      id: pytester-cov
+      uses: alexanderdamiani/pytester-cov@v1.2.0
+      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
+      with:
+        pytest-root-dir: '.'
+        cov-omit-list: 'tests/*'
+        cov-threshold-single: ${{ env.COVERAGE_SINGLE }}
+        cov-threshold-total: ${{ env.COVERAGE_TOTAL }}
 
     - name: Run pytest
       run: poetry run pytest
