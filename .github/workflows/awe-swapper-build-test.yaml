@@ -37,21 +37,10 @@ jobs:
       run: cd .. && git clone https://github.com/algorand/sandbox.git
       if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
 
-    # - name: Build and cache sandbox
-    # - uses: whoan/docker-build-with-cache-action@v5
-    #   with:
-    #     username: "${{ secrets.DOCKER_HUB_USERNAME }}"
-    #     password: "${{ secrets.DOCKER_HUB_PASSWORD }}"
-    #     compose_file: ../sandbox/docker-compose.yml
-
     - name: Run algorand sandbox
       shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
-      run: cd ../sandbox && ./sandbox up dev -v
+      run: cd ../sandbox && ./sandbox up dev
       if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
-
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      # Ignore the failure of a step and avoid terminating the job.
-      continue-on-error: true
 
     - name: Delay before testing
       run: sleep 60
