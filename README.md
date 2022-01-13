@@ -60,6 +60,8 @@ Testing assumes that docker and algorand sandbox are both up and running. The sa
 (.venv) pytest
 ```
 
+You can also include `[pytest]` into your commit message to trigger the test in CI pipeline on `push` action (on pr it is triggered automatically).
+
 ## 🚧 Contribution guideline
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md)
