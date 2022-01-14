@@ -6,6 +6,7 @@ import pty
 import subprocess
 import time
 from pathlib import Path
+from random import randint
 from typing import Dict, List
 
 import yaml
@@ -25,6 +26,11 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
+from src.asas_to_algo_swapper import (
+    AsasToAlgoSwapConfig,
+    compile_stateless,
+    multi_asa_swapper,
+)
 from tests.common.constants import INCENTIVE_FEE_AMOUNT
 from tests.models import LogicSigWallet, Wallet
 
@@ -190,6 +196,33 @@ def generate_stateless_contract(compiled_teal: str) -> LogicSigWallet:
     return LogicSigWallet(logic_sig, escrow_address)  # type: ignore
 
 
+def generate_swapper(cfg: AsasToAlgoSwapConfig):
+    swapper_lsig = logic_signature(compile_stateless(multi_asa_swapper(cfg)))
+    return LogicSigWallet(logicsig=swapper_lsig, public_key=swapper_lsig.address())
+
+
+def generate_random_offered_asas(swap_creator: Wallet) -> int:
+    asas = []
+    for i in range(0, 5):
+        amount = randint(1, 6000)
+        decimals = randint(0, 10)
+        asa_id = mint_asa(
+            swap_creator.public_key,
+            swap_creator.private_key,
+            asset_name=f"Card {i}",
+            total=amount,
+            decimals=decimals,
+        )
+        asas.append({"id": asa_id, "amount": amount, "decimals": decimals})
+        print(
+            f"\n --- ASA {asa_id} minted with amount {amount} and decimals {decimals}"
+        )
+    return asas
+
+
+#### Functions
+
+
 def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
     """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
@@ -259,6 +292,8 @@ def transaction_info(transaction_id):
 
 # UTILITY
 ################################################################
+
+
 def _compile_source(source):
     """Compile and return teal binary code."""
     compile_response = _algod_client().compile(source)
@@ -304,6 +339,7 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
         url="https://path/to/my/asset/details",
         decimals=decimals,
     )
+    print(txn)
     # Sign with secret key of creator
     stxn = txn.sign(sender_pass)
 
