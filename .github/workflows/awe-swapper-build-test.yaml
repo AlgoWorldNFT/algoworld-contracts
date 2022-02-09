@@ -51,7 +51,7 @@ jobs:
 
     - name: pytester-cov
       id: pytester-cov
-      uses: alexanderdamiani/pytester-cov@v1.2.0
+      uses: alexanderdamiani/pytester-cov@v1.2.2
       if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
       with:
         pytest-root-dir: '.'
