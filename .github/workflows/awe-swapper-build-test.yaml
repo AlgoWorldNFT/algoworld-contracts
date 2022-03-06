@@ -1,6 +1,6 @@
 name: AWE Swapper Build and Test validation
 
-on: [pull_request, push]
+on: [pull_request]
 
 jobs:
   build-backend:
@@ -38,21 +38,17 @@ jobs:
 
     - name: Clone algorand sanbox
       run: cd .. && git clone https://github.com/algorand/sandbox.git
-      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
 
     - name: Run algorand sandbox
       shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
-      run: cd ../sandbox && ./sandbox up dev
-      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
+      run: cd ../sandbox && ./sandbox up testnet
 
     - name: Delay before testing
       run: sleep 60
-      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
 
     - name: pytester-cov
       id: pytester-cov
       uses: alexanderdamiani/pytester-cov@v1.2.2
-      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
       with:
         pytest-root-dir: '.'
         cov-omit-list: 'tests/*'
@@ -61,4 +57,3 @@ jobs:
 
     - name: Run pytest
       run: poetry run pytest
-      if: github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[pytest]')
