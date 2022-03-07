@@ -19,37 +19,36 @@ from tests.common import (
     swapper_deposit,
     swapper_opt_in,
 )
-from tests.models import LogicSigWallet, Wallet
+from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 
 @pytest.fixture()
-def swap_creator() -> Wallet:
+def swap_creator(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper Creator {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def swap_user() -> Wallet:
+def swap_user(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper User {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def incentive_wallet() -> Wallet:
+def incentive_wallet(algorand_sandbox: AlgorandSandbox) -> Wallet:
     incentive_account = Wallet("", INCENTIVE_FEE_ADDRESS)
-    fund_wallet(incentive_account)
+    fund_wallet(incentive_account, algorand_sandbox)
     print(f"\n --- Incentive Wallet {incentive_account.public_key} funded.")
     return incentive_account
 
 
 @pytest.fixture()
 def offered_asa_idx(swap_creator: Wallet) -> int:
-    return mint_asa(
-        swap_creator.public_key,
+    return mint_asa(swap_creator.public_key,
         swap_creator.private_key,
         asset_name="Card A",
         total=1,

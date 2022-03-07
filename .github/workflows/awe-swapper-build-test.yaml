@@ -2,9 +2,6 @@ name: AWE Swapper Build and Test validation
 
 on: [pull_request]
 
-env:
-  SANDBOX_DOCKER_COMPOSE_URL: https://gist.githubusercontent.com/aorumbayev/7feedf83e07bc4abd9b319bf58562bc6/raw/b1dbd1bc70f0b21bf83e448b6243caf9279cfa14/algorand_sandbox.yaml
-
 jobs:
   build-backend:
     name: Build & test swapper stateless contract
@@ -34,19 +31,8 @@ jobs:
     - name: Install python dependencies
       run: poetry install
 
-    - uses: pre-commit/action@v2.0.3
-      name: "Linters and formatters check"
-      with:
-        extra_args: --all-files --show-diff-on-failure
-
-    - name: Clone algorand sanbox
-      run: curl $SANDBOX_DOCKER_COMPOSE_URL -o sandbox.yaml
-
-    - name: Run algorand sandbox
-      run: docker-compose -f sandbox.yaml up -d
-
-    - name: Delay before testing
-      run: sleep 20
+    - name: Run pytest
+      run: poetry run pytest
 
     - name: pytester-cov
       id: pytester-cov
@@ -56,6 +42,3 @@ jobs:
         cov-omit-list: 'tests/*'
         cov-threshold-single: ${{ env.COVERAGE_SINGLE }}
         cov-threshold-total: ${{ env.COVERAGE_TOTAL }}
-
-    - name: Run pytest
-      run: poetry run pytest
