@@ -36,11 +36,18 @@ jobs:
       with:
         extra_args: --all-files --show-diff-on-failure
 
+    - name: Clone algorand sanbox
+      run: cd .. && git clone https://github.com/MakerXStudio/algorand-sandbox-dev sandbox
+
+    - name: Run algorand sandbox
+      shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
+      run: cd ../sandbox && docker-compose up
+
     - name: Run algorand sandbox
       run: docker run -d -p 4001:4001 -p 4002:4002 makerxau/algorand-sandbox-dev
 
     - name: Delay before testing
-      run: sleep 20
+      run: sleep 60
 
     - name: pytester-cov
       id: pytester-cov
