@@ -31,14 +31,12 @@ jobs:
     - name: Install python dependencies
       run: poetry install
 
-    - name: Run pytest
-      run: poetry run pytest
+    - name: Run pytest & coverage
+      run: |
+        poetry run coverage run -m pytest
+        poetry run coverage xml
 
-    - name: pytester-cov
-      id: pytester-cov
-      uses: alexanderdamiani/pytester-cov@v1.2.2
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
       with:
-        pytest-root-dir: '.'
-        cov-omit-list: 'tests/*'
-        cov-threshold-single: ${{ env.COVERAGE_SINGLE }}
-        cov-threshold-total: ${{ env.COVERAGE_TOTAL }}
+        fail_ci_if_error: true
