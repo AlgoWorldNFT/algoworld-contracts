@@ -37,13 +37,13 @@ jobs:
         extra_args: --all-files --show-diff-on-failure
 
     - name: Clone algorand sanbox
-      run: cd .. && git clone https://github.com/MakerXStudio/algorand-sandbox-dev sandbox
+      run: curl https://gist.githubusercontent.com/aorumbayev/7feedf83e07bc4abd9b319bf58562bc6/raw/b1dbd1bc70f0b21bf83e448b6243caf9279cfa14/algorand_sandbox.yaml -o sandbox.yaml
 
     - name: Run algorand sandbox
-      run: cd ../sandbox &&  docker-compose pull && docker-compose up -d
+      run: docker-compose up -f sandbox.yaml -d
 
     - name: Delay before testing
-      run: sleep 60
+      run: sleep 20
 
     - name: pytester-cov
       id: pytester-cov
