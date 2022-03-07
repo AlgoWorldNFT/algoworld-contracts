@@ -48,7 +48,8 @@ def incentive_wallet(algorand_sandbox: AlgorandSandbox) -> Wallet:
 
 @pytest.fixture()
 def offered_asa_idx(swap_creator: Wallet) -> int:
-    return mint_asa(swap_creator.public_key,
+    return mint_asa(
+        swap_creator.public_key,
         swap_creator.private_key,
         asset_name="Card A",
         total=1,
