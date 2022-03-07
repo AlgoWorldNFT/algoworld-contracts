@@ -1,11 +1,12 @@
 <p align="center"><a  href="https://twitter.com/algoworld_nft/status/1450608110268211203"><img  width=100%  src="https://pbs.twimg.com/media/FCGWpeIWEAsTZ9A?format=jpg&name=4096x4096"  alt="687474703a2f2f6936332e74696e797069632e636f6d2f333031336c67342e706e67"  border="0" /></a></p>
 
 <p align="center">
-    <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" alt="Frontend" /></a>
-    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" alt="Javadoc" /></a>
-    <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" alt="AlgoWorldExplorer" /></a>
+    <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" /></a>
+    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/AlgoWorld-Website-pink.svg" /></a>
+    <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" /></a>
     <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-swapper&right_color=green" /></a>
-    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml/badge.svg" alt="AlgoWorldExplorer" /></a>
+    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml/badge.svg" /></a>
+    <a href="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper"><img src="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper/branch/main/graph/badge.svg?token=2O1VAOJCUD"  /></a>
 </p>
 
 ## 📃 About
@@ -46,15 +47,17 @@ poetry install # install all dependencies
 poetry shell # activate virtual env
 ```
 
-3. Configure `pre-commit` hooks
+(OPTIONAL) 3. Configure `pre-commit` hooks
 
 ```bash
 pre-commit install
 ```
 
+If you are not going to setup `pre-commit` locally, there is a Github Actions plugin that will autoformat your branch if you are opening a PR with commits that contain un-formatted code.
+
 ## 🧪 Testing
 
-Testing assumes that docker and algorand sandbox are both up and running. The sandbox repository has to either be available at `../sandbox` or set via `ALGORAND_SANBOX_DIR`.
+Testing assumes that docker-compose is installed and available. Project is relying on `pytest-docker-compose` plugin that automatically boots up temporary algorand sandbox and destroys the containers after the tests are finished.
 
 ```bash
 (.venv) pytest
