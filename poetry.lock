@@ -421,7 +421,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "pyteal"
-version = "0.9.1"
+version = "0.10.0"
 description = "Algorand Smart Contracts in Python"
 category = "main"
 optional = false
@@ -589,7 +589,7 @@ six = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "5b7a8c6c4ff93969f4e999c1cfc30159cfcb4b221ec2d2d8d4b56d45f241672f"
+content-hash = "2c1311b4420fa62bcc2033ee8b8df588619a9cf49da5bc921344130b2c289248"
 
 [metadata.files]
 atomicwrites = [
@@ -931,8 +931,8 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
 ]
 pyteal = [
-    {file = "pyteal-0.9.1-py3-none-any.whl", hash = "sha256:e395cf30fce630ac26157132ae4e0240845060a858a1a162aeac8b92a286b554"},
-    {file = "pyteal-0.9.1.tar.gz", hash = "sha256:6a7fbb2155ee79e0b6dfbd635e6ac4508a0c2279ddb4203f1c356b47bd684bb6"},
+    {file = "pyteal-0.10.0-py3-none-any.whl", hash = "sha256:6c140db6ac365f438dc979c7de4153686ef97b762b9c4efe23bba0db4ff699e5"},
+    {file = "pyteal-0.10.0.tar.gz", hash = "sha256:a72d1f0859f2248459bbcdbdfcd8cf09023ea003b121f0dbaf58289b8167d20c"},
 ]
 pytest = [
     {file = "pytest-6.2.5-py3-none-any.whl", hash = "sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134"},
