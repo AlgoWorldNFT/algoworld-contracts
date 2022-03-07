@@ -287,8 +287,7 @@ def test_swapper_asa_swap(
 def test_swapper_random_asas_swap(
     swap_creator: Wallet, swap_user: Wallet, incentive_wallet: Wallet
 ):
-    """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap.
-    """
+    """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap."""
 
     random_offered_asas = generate_random_offered_asas(swap_creator)
     asa_ids = [asa["id"] for asa in random_offered_asas]
