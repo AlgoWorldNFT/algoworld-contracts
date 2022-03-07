@@ -6,7 +6,7 @@ on:
       - '*'
   push:
     branches:
-      - 'main'
+      - 'improving_pipeline'
 
 jobs:
   build-contracts:
