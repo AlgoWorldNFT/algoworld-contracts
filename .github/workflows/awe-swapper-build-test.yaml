@@ -2,6 +2,9 @@ name: AWE Swapper Build and Test validation
 
 on: [pull_request]
 
+env:
+  SANDBOX_DOCKER_COMPOSE_URL: https://gist.githubusercontent.com/aorumbayev/7feedf83e07bc4abd9b319bf58562bc6/raw/b1dbd1bc70f0b21bf83e448b6243caf9279cfa14/algorand_sandbox.yaml
+
 jobs:
   build-backend:
     name: Build & test swapper stateless contract
@@ -37,7 +40,7 @@ jobs:
         extra_args: --all-files --show-diff-on-failure
 
     - name: Clone algorand sanbox
-      run: curl https://gist.githubusercontent.com/aorumbayev/7feedf83e07bc4abd9b319bf58562bc6/raw/b1dbd1bc70f0b21bf83e448b6243caf9279cfa14/algorand_sandbox.yaml -o sandbox.yaml
+      run: curl $SANDBOX_DOCKER_COMPOSE_URL -o sandbox.yaml
 
     - name: Run algorand sandbox
       run: docker-compose up -f sandbox.yaml -d
