@@ -40,7 +40,6 @@ jobs:
       run: cd .. && git clone https://github.com/MakerXStudio/algorand-sandbox-dev sandbox
 
     - name: Run algorand sandbox
-      shell: 'script -q -e -c "bash {0}"' # hacky hack to make TTY work
       run: cd ../sandbox && docker-compose up
 
     - name: Run algorand sandbox
