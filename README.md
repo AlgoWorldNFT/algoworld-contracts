@@ -5,7 +5,7 @@
     <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" /></a>
     <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" /></a>
     <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-swapper&right_color=green" /></a>
-    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml/badge.svg" /></a>
+    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml/badge.svg" /></a>
     <a href="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper"><img src="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper/branch/main/graph/badge.svg?token=2O1VAOJCUD"  /></a>
 </p>
 
