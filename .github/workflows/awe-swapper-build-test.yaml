@@ -40,7 +40,7 @@ jobs:
       run: cd .. && git clone https://github.com/MakerXStudio/algorand-sandbox-dev sandbox
 
     - name: Run algorand sandbox
-      run: cd ../sandbox && docker-compose up
+      run: cd ../sandbox &&  docker-compose pull && docker-compose up -d
 
     - name: Run algorand sandbox
       run: docker run -d -p 4001:4001 -p 4002:4002 makerxau/algorand-sandbox-dev
