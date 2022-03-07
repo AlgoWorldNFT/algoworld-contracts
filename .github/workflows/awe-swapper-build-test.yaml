@@ -43,7 +43,7 @@ jobs:
       run: curl $SANDBOX_DOCKER_COMPOSE_URL -o sandbox.yaml
 
     - name: Run algorand sandbox
-      run: docker-compose up -f sandbox.yaml -d
+      run: docker-compose -f sandbox.yaml up -d
 
     - name: Delay before testing
       run: sleep 20
