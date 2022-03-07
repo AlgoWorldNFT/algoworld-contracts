@@ -46,15 +46,17 @@ poetry install # install all dependencies
 poetry shell # activate virtual env
 ```
 
-3. Configure `pre-commit` hooks
+(OPTIONAL) 3. Configure `pre-commit` hooks
 
 ```bash
 pre-commit install
 ```
 
+If you are not going to setup `pre-commit` locally, there is a Github Actions plugin that will autoformat your branch if you are opening a PR with commits that contain un-formatted code.
+
 ## 🧪 Testing
 
-Testing assumes that docker and algorand sandbox are both up and running. The sandbox repository has to either be available at `../sandbox` or set via `ALGORAND_SANBOX_DIR`.
+Testing assumes that docker-compose is installed and available. Project is relying on `pytest-docker-compose` plugin that automatically boots up temporary algorand sandbox and destroys the containers after the tests are finished.
 
 ```bash
 (.venv) pytest
