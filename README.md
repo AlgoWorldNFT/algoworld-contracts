@@ -1,11 +1,12 @@
 <p align="center"><a  href="https://twitter.com/algoworld_nft/status/1450608110268211203"><img  width=100%  src="https://pbs.twimg.com/media/FCGWpeIWEAsTZ9A?format=jpg&name=4096x4096"  alt="687474703a2f2f6936332e74696e797069632e636f6d2f333031336c67342e706e67"  border="0" /></a></p>
 
 <p align="center">
-    <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" alt="Frontend" /></a>
-    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" alt="Javadoc" /></a>
-    <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" alt="AlgoWorldExplorer" /></a>
+    <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" /></a>
+    <a href="https://algoworld.io"><img src="https://img.shields.io/badge/Algoworld-Website-pink.svg" /></a>
+    <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" /></a>
     <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-swapper&right_color=green" /></a>
-    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml/badge.svg" alt="AlgoWorldExplorer" /></a>
+    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/awe-swapper-build-test.yaml/badge.svg" /></a>
+    <a href="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper"><img src="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper/branch/main/graph/badge.svg?token=2O1VAOJCUD"  /></a>
 </p>
 
 ## 📃 About
