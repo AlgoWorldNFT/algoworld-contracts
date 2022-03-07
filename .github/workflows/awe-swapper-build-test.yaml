@@ -6,9 +6,6 @@ jobs:
   build-backend:
     name: Build & test swapper stateless contract
     runs-on: ubuntu-latest
-    env:
-      COVERAGE_SINGLE: 60
-      COVERAGE_TOTAL: 60
 
     steps:
     - name: Cancel Previous Runs
