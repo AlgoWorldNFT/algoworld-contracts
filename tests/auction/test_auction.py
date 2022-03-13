@@ -1,9 +1,11 @@
 import pytest
-from algosdk.error import AlgodHTTPError
 
-from src.swapper.asa_to_asa_swapper import OPTIN_FUNDING_AMOUNT
-from tests.common import fund_wallet, generate_wallet, swapper_opt_in
-from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
+from tests.auction.utils import ALGOWORLD_APP_ARGS, AuctionManager, get_global_state
+from tests.common import fund_wallet, generate_wallet
+from tests.common.utils import mint_asa
+from tests.models import AlgorandSandbox, Wallet
+
+CONTRACTS_VERSION = "1"
 
 
 @pytest.fixture()
@@ -46,54 +48,159 @@ def fee_profits_b_account(algorand_sandbox: AlgorandSandbox) -> Wallet:
     return funded_account
 
 
-def test_auction_flow(
-    swapper_account: LogicSigWallet,
-    swap_creator: Wallet,
-    swap_user: Wallet,
-    offered_asa_idx: int,
-    other_asa_idx: int,
-):
-
-    with pytest.raises(AlgodHTTPError):
-        print("\n --- Opt-In fails if not executed by swap creator")
-        swapper_opt_in(
-            swap_creator=swap_user,
-            swapper_account=swapper_account,
-            assets={offered_asa_idx: 0},
-            funding_amount=OPTIN_FUNDING_AMOUNT,
-        )
-
-    with pytest.raises(AlgodHTTPError):
-        print("\n --- Opt-In fails with wrong funding amount")
-        swapper_opt_in(
-            swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            assets={offered_asa_idx: 0},
-            funding_amount=OPTIN_FUNDING_AMOUNT - 1,
-        )
-
-    with pytest.raises(AlgodHTTPError):
-        print("\n --- Opt-In fails with wrong ASA")
-        swapper_opt_in(
-            swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            assets={other_asa_idx: 0},
-            funding_amount=OPTIN_FUNDING_AMOUNT,
-        )
-
-    with pytest.raises(AlgodHTTPError):
-        print("\n --- Opt-In fails with wrong ASA amount")
-        swapper_opt_in(
-            swap_creator=swap_creator,
-            swapper_account=swapper_account,
-            assets={offered_asa_idx: 1},
-            funding_amount=OPTIN_FUNDING_AMOUNT,
-        )
-
-    # Happy path
-    swapper_opt_in(
-        swap_creator=swap_creator,
-        swapper_account=swapper_account,
-        assets={offered_asa_idx: 0},
-        funding_amount=OPTIN_FUNDING_AMOUNT,
+@pytest.fixture()
+def auction_asa_id(creator_account: Wallet) -> int:
+    return mint_asa(
+        creator_account.public_key,
+        creator_account.private_key,
+        asset_name="Auction Card A",
+        total=1,
+        decimals=0,
     )
+
+
+def test_auction_flow(
+    main_account: Wallet,
+    creator_account: Wallet,
+    buyer_account: Wallet,
+    fee_profits_a_account: Wallet,
+    fee_profits_b_account: Wallet,
+    auction_asa_id: int,
+):
+    contract_tx, proxy, app_id = AuctionManager.create_contract(
+        creator_account,
+        fee_profits_a_account,
+        fee_profits_b_account,
+        CONTRACTS_VERSION,
+        auction_asa_id,
+    )
+    configure_tx = AuctionManager.configure_contract(
+        creator_account,
+        fee_profits_a_account,
+        fee_profits_b_account,
+        auction_asa_id,
+        app_id,
+    )
+
+    assert app_id
+    assert get_global_state(ALGOWORLD_APP_ARGS.ASK_PRICE, app_id) == 0
+    assert get_global_state(ALGOWORLD_APP_ARGS.BIDS_AMOUNT, app_id) == 0
+
+    # // Setup application
+
+    # assert.isDefined(contract.getApplicationId());
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.deepEqual(getGlobal(ESCROW_ADDRESS), new Uint8Array(32));
+    # assert.deepEqual(getGlobal(CREATOR_ADDRESS), creatorPk);
+
+    # // Setup escrow account
+
+    # // Verify escrow storage
+    # assert.deepEqual(getGlobal(ESCROW_ADDRESS), addressToPk(contract.getEscrowAddress()));
+
+    # // Opt-in
+
+    # // First ask offer
+    # contract.setPrice(master, 1e6, {
+    # });
+
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 1e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+
+    # // Update ask offer
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+
+    # // First bid offer
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 5e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+
+    # // Increase bid offer
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 6e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+
+    # // Decrease bid offer
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 4e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+
+    # // Remove ask offer and withdraw NFT
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    # contract.setPrice(master, 0, {
+    # });
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+
+    # // Sell now with direct NFT transfer
+    # contract.sellNow(master, thirdParty.address, {
+    # });
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+
+    # // First ask offer
+    # contract.setPrice(thirdParty, 10e6, {
+    # });
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(thirdParty.address));
+    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(master.address, BID_PRICE), 0);
+
+    # // Increase bid offer
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    # assert.equal(getLocal(master.address, BID_PRICE), 2e6);
+
+    # // Buy now while increasing bid offer
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(master.address, BID_PRICE), 0);
+
+    # // First ask offer
+    # contract.setPrice(master, 10e6, {
+    # });
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+
+    # // Increase bid offer
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 2e6);
+
+    # // Decrease ask offer
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 5e6);
+
+    # // Buy now while decreasing bid offer
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+
+    # // Create bid offer without ask offer
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 5e6);
+
+    # // First ask offer
+    # contract.setPrice(master, 10e6, {
+    # });
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
+    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 5e6);
+
+    # // Sell now with direct NFT transfer
+    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
+    # assert.equal(getGlobal(ASK_PRICE), 0);
+    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
+    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+
+    assert True

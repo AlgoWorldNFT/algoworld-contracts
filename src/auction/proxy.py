@@ -7,6 +7,8 @@ if __name__ == "__main__":
 else:
     from .helpers.parse import parse_args
 
+TEAL_VERSION = 6
+
 
 def proxy(proxy_id: int):
     return Seq(
@@ -27,9 +29,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         params = parse_args(sys.argv[1], params)
 
-    print(
-        compileTeal(
-            proxy(params["proxy_id"]),
-            Mode.Signature,
-        )
-    )
+    print(compileTeal(proxy(params["proxy_id"]), Mode.Signature, version=TEAL_VERSION))

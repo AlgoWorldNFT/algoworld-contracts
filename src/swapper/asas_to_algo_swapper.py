@@ -36,7 +36,7 @@ Multi ASA to ALGO Atomic Swapper
 3. Close Multi ASA Swap
 """
 
-TEAL_VERSION = 5
+TEAL_VERSION = 6
 BASE_OPTIN_FUNDING_AMOUNT = 210000
 
 

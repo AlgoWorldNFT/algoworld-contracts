@@ -31,6 +31,8 @@ else:
     from .helpers.parse import parse_args
     from .helpers.state import GlobalState, LocalState
 
+TEAL_VERSION = 6
+
 
 class ManagerContract:
     def __init__(self, fee_addr1: str, fee_addr2: str, contract_version_value: str):
@@ -393,5 +395,6 @@ if __name__ == "__main__":
                 params["contract_version_value"],
             ),
             Mode.Application,
+            version=TEAL_VERSION,
         )
     )

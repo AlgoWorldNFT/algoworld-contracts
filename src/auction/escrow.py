@@ -24,6 +24,8 @@ if __name__ == "__main__":
 else:
     from .helpers.parse import parse_args
 
+TEAL_VERSION = 6
+
 
 def escrow(app_id: int, nft_id: int, fee_addr1: str, fee_addr2: str):
     on_bid = Seq(
@@ -247,5 +249,6 @@ if __name__ == "__main__":
                 int(params["nft_id"]),
             ),
             Mode.Signature,
+            version=TEAL_VERSION,
         )
     )

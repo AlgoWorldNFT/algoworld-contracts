@@ -36,7 +36,7 @@ ASA to ASA Atomic Swapper
 3. Close Swap
 """
 
-TEAL_VERSION = 5
+TEAL_VERSION = 6
 
 MAX_FEE = Int(1000)
 OPTIN_FUNDING_AMOUNT = 210000
