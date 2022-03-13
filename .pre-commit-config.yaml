@@ -23,3 +23,9 @@ repos:
         - --remove-all-unused-imports
         - --expand-star-imports
         - --ignore-init-module-imports
+- repo: https://github.com/myint/eradicate
+  rev: v2.0.0
+  hooks:
+      - id: eradicate
+        args:
+            - --in-place

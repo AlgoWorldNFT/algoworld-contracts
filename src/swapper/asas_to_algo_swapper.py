@@ -27,7 +27,7 @@ import sys
 
 from pyteal import Addr, And, Cond, Expr, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
-from src.utils import parse_params
+from src.swapper.utils import parse_params
 
 """
 Multi ASA to ALGO Atomic Swapper

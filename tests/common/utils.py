@@ -24,7 +24,7 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
-from src.asas_to_algo_swapper import (
+from src.swapper.asas_to_algo_swapper import (
     AsasToAlgoSwapConfig,
     compile_stateless,
     multi_asa_swapper,
