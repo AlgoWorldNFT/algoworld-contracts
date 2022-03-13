@@ -216,5 +216,3 @@ def test_auction_flow(
     # assert.equal(getGlobal(ASK_PRICE), 0);
     # assert.equal(getGlobal(BIDS_AMOUNT), 0);
     # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
-
-    assert True
