@@ -16,31 +16,31 @@ from tests.common import (
     swapper_deposit,
     swapper_opt_in,
 )
-from tests.models import LogicSigWallet, Wallet
+from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 #### Fixtures
 
 
 @pytest.fixture()
-def swap_creator() -> Wallet:
+def swap_creator(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper Creator {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def swap_user() -> Wallet:
+def swap_user(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper User {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def incentive_wallet() -> Wallet:
+def incentive_wallet(algorand_sandbox: AlgorandSandbox) -> Wallet:
     incentive_account = Wallet("", INCENTIVE_FEE_ADDRESS)
-    fund_wallet(incentive_account)
+    fund_wallet(incentive_account, algorand_sandbox)
     print(f"\n --- Incentive Wallet {incentive_account.public_key} funded.")
     return incentive_account
 
@@ -287,8 +287,7 @@ def test_swapper_asa_swap(
 def test_swapper_random_asas_swap(
     swap_creator: Wallet, swap_user: Wallet, incentive_wallet: Wallet
 ):
-    """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap.
-    """
+    """Randomly generates 5 ASAs of different digits and unit amounts. And attempts a multi asa swap."""
 
     random_offered_asas = generate_random_offered_asas(swap_creator)
     asa_ids = [asa["id"] for asa in random_offered_asas]
