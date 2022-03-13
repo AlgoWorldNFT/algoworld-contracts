@@ -75,6 +75,8 @@ def test_auction_flow(
         CONTRACTS_VERSION,
         auction_asa_id,
     )
+    assert contract_tx and proxy and app_id
+
     configure_tx, escrow = AuctionManager.configure_contract(
         creator_account,
         fee_profits_a_account,
@@ -82,8 +84,9 @@ def test_auction_flow(
         auction_asa_id,
         app_id,
     )
+    assert configure_tx and escrow
 
-    assert app_id
+    # Check if initial global state are set to correct default values
     assert get_global_state(ALGOWORLD_APP_ARGS.ASK_PRICE, app_id) == 0
     assert get_global_state(ALGOWORLD_APP_ARGS.BIDS_AMOUNT, app_id) == 0
     assert (
