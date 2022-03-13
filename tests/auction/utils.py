@@ -1,6 +1,7 @@
 import base64
 from random import randint
 
+from algosdk.encoding import encode_address
 from algosdk.future.transaction import (
     ApplicationCallTxn,
     ApplicationCreateTxn,
@@ -52,7 +53,7 @@ def decode_global_state(state):
         if value_type == 2:
             decoded_state[key] = int(obj["value"]["uint"])
         elif value_type == 1:
-            decoded_state[key] = base64.b64decode(obj["value"]["bytes"])
+            decoded_state[key] = encode_address(base64.b64decode(obj["value"]["bytes"]))
     return decoded_state
 
 
@@ -198,7 +199,7 @@ class AuctionManager:
             [config_tx, fee_tx, asa_transfer_tx],
         )
 
-        return tx
+        return tx, escrow
 
     #   from: accountAddress,
     #   type: 'appl',

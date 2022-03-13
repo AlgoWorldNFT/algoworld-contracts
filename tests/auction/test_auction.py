@@ -6,6 +6,7 @@ from tests.common.utils import mint_asa
 from tests.models import AlgorandSandbox, Wallet
 
 CONTRACTS_VERSION = "1"
+EMPTY_WALLET_STATE = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
 
 
 @pytest.fixture()
@@ -74,7 +75,7 @@ def test_auction_flow(
         CONTRACTS_VERSION,
         auction_asa_id,
     )
-    configure_tx = AuctionManager.configure_contract(
+    configure_tx, escrow = AuctionManager.configure_contract(
         creator_account,
         fee_profits_a_account,
         fee_profits_b_account,
@@ -85,6 +86,16 @@ def test_auction_flow(
     assert app_id
     assert get_global_state(ALGOWORLD_APP_ARGS.ASK_PRICE, app_id) == 0
     assert get_global_state(ALGOWORLD_APP_ARGS.BIDS_AMOUNT, app_id) == 0
+    assert (
+        get_global_state(ALGOWORLD_APP_ARGS.ESCROW_ADDRESS, app_id) == escrow.public_key
+    )
+    assert (
+        get_global_state(ALGOWORLD_APP_ARGS.CREATOR_ADDRESS, app_id)
+        == creator_account.public_key
+    )
+    assert (
+        get_global_state(ALGOWORLD_APP_ARGS.OWNER_ADDRESS, app_id) == EMPTY_WALLET_STATE
+    )
 
     # // Setup application
 
