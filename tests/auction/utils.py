@@ -5,7 +5,9 @@ from algosdk.encoding import encode_address
 from algosdk.future.transaction import (
     ApplicationCallTxn,
     ApplicationCreateTxn,
+    ApplicationOptInTxn,
     AssetOptInTxn,
+    AssetTransferTxn,
     OnComplete,
     PaymentTxn,
     StateSchema,
@@ -23,26 +25,17 @@ from tests.common.utils import (
     group_sign_send_wait,
     logic_signature,
 )
-from tests.models import LogicSigWallet, Wallet
+from tests.models import (
+    ALGOWORLD_APP_ARGS,
+    LocalStateConditional,
+    LogicSigWallet,
+    Wallet,
+)
 
 ALGOD = _algod_client()
 INDEXER = _indexer_client()
 CONTRACT_CREATION_FEE = 466_000
 CONTRACT_CONFIG_FEE = 302_000
-
-
-class ALGOWORLD_APP_ARGS:
-    ESCROW_ADDRESS = b"E"
-    ASK_PRICE = b"A"
-    BIDS_AMOUNT = b"B"
-    OWNER_ADDRESS = b"O"
-    CREATOR_ADDRESS = b"C"
-    BID_PRICE = b"B"
-    BID = b"B"
-    SET_PRICE = b"S"
-    BUY_NOW = b"BN"
-    SELL_NOW = b"SN"
-    CONFIGURE = b"C"
 
 
 def decode_global_state(state):
@@ -57,10 +50,61 @@ def decode_global_state(state):
     return decoded_state
 
 
-def get_global_state(app_arg: bytes, app_id: int):
+def decode_local_state(state):
+    decoded_state = {}
+    local_state_kv = state["key-value"]
+    for obj in local_state_kv:
+        key = base64.b64decode(obj["key"]).decode("utf-8")
+        value_type = obj["value"]["type"]
+        if value_type == 2:
+            decoded_state[key] = int(obj["value"]["uint"])
+        elif value_type == 1:
+            decoded_state[key] = encode_address(base64.b64decode(obj["value"]["bytes"]))
+    return decoded_state
+
+
+def get_global_state(app_arg: ALGOWORLD_APP_ARGS, app_id: int):
     global_state = ALGOD.application_info(app_id)["params"]["global-state"]
     decoded_global_state = decode_global_state(global_state)
     return decoded_global_state[app_arg.decode()]
+
+
+def assert_states(conditionals: list):
+    for condition in conditionals:
+        if isinstance(condition, LocalStateConditional):
+            assert (
+                get_local_state(
+                    condition.account, condition.arg_name, condition.arg_value
+                )
+                == condition.expected_value
+            )
+        else:
+            assert (
+                get_global_state(condition.arg_name, condition.arg_value)
+                == condition.expected_value
+            )
+
+
+def get_local_state(account: Wallet, app_arg: ALGOWORLD_APP_ARGS, app_id: int):
+
+    account_info = ALGOD.account_info(account.public_key)
+
+    if "apps-local-state" in account_info:
+        account_local_state = None
+        for local_state in account_info["apps-local-state"]:
+            if local_state["id"] == app_id:
+                account_local_state = local_state
+                break
+        if account_local_state:
+            return decode_local_state(account_local_state)[app_arg.decode()]
+
+    return None
+
+
+class AUCTION_SET_PRICE_OPERATION:
+    ADD_NFT: int = 1
+    REMOVE_NFT: int = 2
+    DEFAULT_CALL: int = 3
 
 
 class AuctionManager:
@@ -200,3 +244,199 @@ class AuctionManager:
         )
 
         return tx, escrow
+
+    @staticmethod
+    def set_price(
+        creator: Wallet,
+        escrow: Wallet,
+        app_id: int,
+        asset_id: int,
+        price: int,
+        operation: AUCTION_SET_PRICE_OPERATION,
+    ):
+        app_args = [ALGOWORLD_APP_ARGS.SET_PRICE, price]
+        txn_group = []
+        signers = []
+        if operation == AUCTION_SET_PRICE_OPERATION.ADD_NFT:
+            txn_group.extend(
+                [
+                    ApplicationCallTxn(
+                        sender=creator.public_key,
+                        sp=ALGOD.suggested_params(),
+                        index=app_id,
+                        on_complete=OnComplete.NoOpOC,
+                        app_args=app_args,
+                        note="I am a fee transaction for setting offer price on algoworld contract auction",
+                    ),
+                    AssetTransferTxn(
+                        sender=creator.public_key,
+                        sp=ALGOD.suggested_params(),
+                        receiver=escrow.public_key,
+                        index=asset_id,
+                        amt=1,
+                    ),
+                ]
+            )
+            signers.extend([creator, creator])
+        elif operation == AUCTION_SET_PRICE_OPERATION.REMOVE_NFT:
+            txn_group.extend(
+                [
+                    ApplicationCallTxn(
+                        sender=creator.public_key,
+                        sp=ALGOD.suggested_params(),
+                        index=app_id,
+                        on_complete=OnComplete.NoOpOC,
+                        app_args=app_args,
+                        note="I am a fee transaction for setting offer price on algoworld contract auction",
+                    ),
+                    PaymentTxn(
+                        creator.public_key,
+                        ALGOD.suggested_params(),
+                        escrow.public_key,
+                        1000,
+                        None,
+                        "I am a fee transaction for setting offer on algoworld contract",
+                    ),
+                    AssetTransferTxn(
+                        sender=escrow.public_key,
+                        sp=ALGOD.suggested_params(),
+                        receiver=creator.public_key,
+                        index=asset_id,
+                        amt=1,
+                    ),
+                ]
+            )
+            signers.extend([creator, creator, escrow])
+        else:
+            txn_group = [
+                ApplicationCallTxn(
+                    sender=creator.public_key,
+                    sp=ALGOD.suggested_params(),
+                    index=app_id,
+                    on_complete=OnComplete.NoOpOC,
+                    app_args=app_args,
+                    note="I am a fee transaction for setting offer price on algoworld contract auction",
+                )
+            ]
+            signers = [creator]
+
+        tx = group_sign_send_wait(signers, txn_group)
+        return tx
+
+    @staticmethod
+    def opt_in_wallet(wallet: Wallet, app_id: int):
+
+        app_opt_in = ApplicationOptInTxn(
+            sender=wallet.public_key,
+            sp=ALGOD.suggested_params(),
+            index=app_id,
+        )
+
+        tx = group_sign_send_wait([wallet], [app_opt_in])
+        return tx
+
+    @staticmethod
+    def bid_auction(wallet: Wallet, escrow: Wallet, app_id: int, bid_price: int):
+        current_price = get_local_state(wallet, ALGOWORLD_APP_ARGS.BID_PRICE, app_id)
+        price_difference = bid_price - current_price
+        app_args = [ALGOWORLD_APP_ARGS.BID]
+
+        tx_group = []
+        signers = []
+
+        if price_difference >= 0:
+            tx_group = [
+                ApplicationCallTxn(
+                    sender=wallet.public_key,
+                    sp=ALGOD.suggested_params(),
+                    index=app_id,
+                    on_complete=OnComplete.NoOpOC,
+                    app_args=app_args,
+                ),
+                PaymentTxn(
+                    sender=wallet.public_key,
+                    sp=ALGOD.suggested_params(),
+                    receiver=escrow.public_key,
+                    amt=price_difference,
+                    close_remainder_to=None,
+                ),
+            ]
+            signers = [wallet, wallet]
+        else:
+            tx_group = [
+                ApplicationCallTxn(
+                    sender=wallet.public_key,
+                    sp=ALGOD.suggested_params(),
+                    index=app_id,
+                    on_complete=OnComplete.NoOpOC,
+                    app_args=app_args,
+                ),
+                PaymentTxn(
+                    wallet.public_key,
+                    ALGOD.suggested_params(),
+                    escrow.public_key,
+                    1_000,
+                    None,
+                ),
+                PaymentTxn(
+                    escrow.public_key,
+                    ALGOD.suggested_params(),
+                    wallet.public_key,
+                    int(abs(price_difference)),
+                    None,
+                ),
+            ]
+            signers = [wallet, wallet, escrow]
+
+        tx = group_sign_send_wait(signers, tx_group)
+        return tx
+
+    # const currentPrice = Number(this.runtime.getLocalState(this.getApplicationId(), from.address, BID_PRICE));
+    # const difference = targetPrice - currentPrice;
+    # let appArgs = [stringToBytes(BID)];
+    # let txGroup;
+    # if (difference >= 0) {
+    #       type: TransactionType.CallNoOpSSC,
+    #       sign: SignType.SecretKey,
+    #       fromAccount: from.account,
+    #       appId: this.applicationId,
+    #       appArgs: appArgs,
+    #       payFlags: { totalFee: 1000 },
+    #     },
+    #       type: TransactionType.TransferAlgo,
+    #       // assetID: this.USDCAssetId,
+    #       sign: SignType.SecretKey,
+    #       fromAccount: from.account,
+    #       toAccountAddr: this.escrowAddress,
+    #       amountMicroAlgos: difference,
+    #       payFlags: {
+    #         totalFee: 1000,
+    #       },
+    #   ];
+    # } else {
+    #       type: TransactionType.CallNoOpSSC,
+    #       sign: SignType.SecretKey,
+    #       fromAccount: from.account,
+    #       appId: this.applicationId,
+    #       appArgs: appArgs,
+    #       payFlags: { totalFee: 1000 },
+    #     },
+    #       type: TransactionType.TransferAlgo,
+    #       sign: SignType.SecretKey,
+    #       fromAccount: from.account,
+    #       toAccountAddr: this.escrow.address,
+    #       amountMicroAlgos: 1000,
+    #       payFlags: {
+    #         totalFee: 1000,
+    #       },
+    #     },
+    #       type: TransactionType.TransferAlgo,
+    #       sign: SignType.LogicSignature,
+    #       lsig: this.lSig,
+    #       fromAccount: this.escrow.account,
+    #       toAccountAddr: from.address,
+    #       amountMicroAlgos: Math.abs(difference),
+    #       payFlags: {
+    #         totalFee: 1000,
+    #       },
+    #   ];
