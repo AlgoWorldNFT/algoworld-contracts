@@ -107,6 +107,11 @@ class AUCTION_SET_PRICE_OPERATION:
     DEFAULT_CALL: int = 3
 
 
+class AUCTION_SELL_NFT_OPERATION:
+    FROM_ESCROW: int = 1
+    FROM_WALLET: int = 2
+
+
 class AuctionManager:
     @staticmethod
     def create_proxy():
@@ -219,7 +224,7 @@ class AuctionManager:
             escrow.public_key,
             CONTRACT_CONFIG_FEE,
             None,
-            "I am a fee transaction for configuring algoworld contract",
+            "",
         )
 
         config_tx = ApplicationCallTxn(
@@ -229,7 +234,7 @@ class AuctionManager:
             on_complete=OnComplete.NoOpOC,
             app_args=[ALGOWORLD_APP_ARGS.CONFIGURE],
             accounts=[escrow.public_key],
-            note="I am a fee transaction for configuring algoworld contract",
+            note="",
         )
 
         asa_transfer_tx = AssetOptInTxn(
@@ -266,7 +271,7 @@ class AuctionManager:
                         index=app_id,
                         on_complete=OnComplete.NoOpOC,
                         app_args=app_args,
-                        note="I am a fee transaction for setting offer price on algoworld contract auction",
+                        note="",
                     ),
                     AssetTransferTxn(
                         sender=creator.public_key,
@@ -287,7 +292,7 @@ class AuctionManager:
                         index=app_id,
                         on_complete=OnComplete.NoOpOC,
                         app_args=app_args,
-                        note="I am a fee transaction for setting offer price on algoworld contract auction",
+                        note="",
                     ),
                     PaymentTxn(
                         creator.public_key,
@@ -315,7 +320,7 @@ class AuctionManager:
                     index=app_id,
                     on_complete=OnComplete.NoOpOC,
                     app_args=app_args,
-                    note="I am a fee transaction for setting offer price on algoworld contract auction",
+                    note="",
                 )
             ]
             signers = [creator]
@@ -391,52 +396,229 @@ class AuctionManager:
         tx = group_sign_send_wait(signers, tx_group)
         return tx
 
-    # const currentPrice = Number(this.runtime.getLocalState(this.getApplicationId(), from.address, BID_PRICE));
-    # const difference = targetPrice - currentPrice;
-    # let appArgs = [stringToBytes(BID)];
-    # let txGroup;
-    # if (difference >= 0) {
-    #       type: TransactionType.CallNoOpSSC,
-    #       sign: SignType.SecretKey,
-    #       fromAccount: from.account,
-    #       appId: this.applicationId,
-    #       appArgs: appArgs,
-    #       payFlags: { totalFee: 1000 },
-    #     },
-    #       type: TransactionType.TransferAlgo,
-    #       // assetID: this.USDCAssetId,
-    #       sign: SignType.SecretKey,
-    #       fromAccount: from.account,
-    #       toAccountAddr: this.escrowAddress,
-    #       amountMicroAlgos: difference,
-    #       payFlags: {
-    #         totalFee: 1000,
-    #       },
-    #   ];
-    # } else {
-    #       type: TransactionType.CallNoOpSSC,
-    #       sign: SignType.SecretKey,
-    #       fromAccount: from.account,
-    #       appId: this.applicationId,
-    #       appArgs: appArgs,
-    #       payFlags: { totalFee: 1000 },
-    #     },
-    #       type: TransactionType.TransferAlgo,
-    #       sign: SignType.SecretKey,
-    #       fromAccount: from.account,
-    #       toAccountAddr: this.escrow.address,
-    #       amountMicroAlgos: 1000,
-    #       payFlags: {
-    #         totalFee: 1000,
-    #       },
-    #     },
-    #       type: TransactionType.TransferAlgo,
-    #       sign: SignType.LogicSignature,
-    #       lsig: this.lSig,
-    #       fromAccount: this.escrow.account,
-    #       toAccountAddr: from.address,
-    #       amountMicroAlgos: Math.abs(difference),
-    #       payFlags: {
-    #         totalFee: 1000,
-    #       },
-    #   ];
+    @staticmethod
+    def sell_now(
+        account_address: Wallet,
+        escrow_address: LogicSigWallet,
+        fee_1_address: Wallet,
+        fee_2_address: Wallet,
+        buyer_address: Wallet,
+        app_id: int,
+        nft_id: int,
+        price: int,
+        operation_type: AUCTION_SET_PRICE_OPERATION,
+    ):
+
+        fee = (price * 5) / 100
+        suggested_paramsp = ALGOD.suggested_params()
+        price_with_fee = price - fee
+
+        signers = [
+            account_address,
+            account_address,
+            escrow_address,
+            escrow_address,
+        ]
+        tx_group = [
+            ApplicationCallTxn(
+                sender=account_address.public_key,
+                sp=suggested_paramsp,
+                index=app_id,
+                on_complete=OnComplete.NoOpOC,
+                app_args=[ALGOWORLD_APP_ARGS.SELL_NOW],
+                note="",
+            ),
+            PaymentTxn(
+                account_address.public_key,
+                ALGOD.suggested_params(),
+                escrow_address.public_key,
+                int(suggested_paramsp["min-fee"]) * 4
+                if operation_type == AUCTION_SELL_NFT_OPERATION.FROM_ESCROW
+                else int(suggested_paramsp["min-fee"] * 3),
+                None,
+            ),
+            PaymentTxn(
+                escrow_address.public_key,
+                ALGOD.suggested_params(),
+                account_address.public_key,
+                int(price_with_fee),
+                None,
+            ),
+            PaymentTxn(
+                escrow_address.public_key,
+                ALGOD.suggested_params(),
+                fee_1_address.public_key,
+                int(fee / 2),
+                None,
+            ),
+            PaymentTxn(
+                escrow_address.public_key,
+                ALGOD.suggested_params(),
+                fee_2_address.public_key,
+                int(fee / 2),
+                None,
+            ),
+            AssetTransferTxn(
+                sender=escrow_address.public_key,
+                sp=ALGOD.suggested_params(),
+                receiver=buyer_address.public_key,
+                index=nft_id,
+                amt=1,
+            ),
+            AssetTransferTxn(
+                sender=escrow_address.public_key,
+                sp=ALGOD.suggested_params(),
+                receiver=buyer_address.public_key,
+                index=nft_id,
+                amt=1,
+            )
+            if operation_type == AUCTION_SELL_NFT_OPERATION.FROM_ESCROW
+            else AssetTransferTxn(
+                sender=account_address.public_key,
+                sp=ALGOD.suggested_params(),
+                receiver=buyer_address.public_key,
+                index=nft_id,
+                amt=1,
+            ),
+        ]
+
+        if operation_type == AUCTION_SELL_NFT_OPERATION.FROM_ESCROW:
+            tx_group.append(
+                AssetTransferTxn(
+                    sender=escrow_address.public_key,
+                    sp=ALGOD.suggested_params(),
+                    receiver=buyer_address.public_key,
+                    index=nft_id,
+                    amt=1,
+                ),
+            )
+
+        [account_address, escrow_address, fee_1_address, fee_2_address]
+
+
+#         signedUSDCTransfer,
+#         signedNFTTransfer,
+#         signedFeeAddr1Transfer,
+#         signedFeeAddr2Transfer
+
+# #           accountAddress: escrowAddress,
+# #           toAddress: buyerAddress,
+# #           amount: 1,
+# #           assetIndex: nftId,
+# #           suggestedParams,
+# #           note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+# #         },
+# #         false
+
+#         accountAddress: escrowAddress,
+#         toAddress: accountAddress,
+#         amount: priceWithFee,
+#         suggestedParams,
+
+#   async sellNow(
+#     accountAddress,
+#     escrowAddress,
+#     buyerAddress,
+#     appId,
+#     nftId,
+#     price,
+#     const suggestedParams = await this.getSuggestedParams()
+#     eventBus.$emit('set-action-message', 'Creating sell now transaction...')
+#     const escrowProgram = await this.getEscrowProgram(appId, nftId)
+#     const fee = (price * 5) / 100
+#     const priceWithFee = price - fee
+#     const lSig = getLogicSign(escrowProgram)
+#     const callTx = transactionMaker.makeCallTx({
+#       accountAddress,
+#       appAccounts: [buyerAddress],
+#       appIndex: appId,
+#       appArgs: [SELL_NOW],
+#       suggestedParams,
+#       note: `App call transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+
+#     const feeTx = transactionMaker.makeAlgoPaymentTx({
+#       accountAddress,
+#       toAddress: escrowAddress,
+#         ? Number(suggestedParams['min-fee']) * 4
+#         : Number(suggestedParams['min-fee'] * 3),
+#       suggestedParams,
+#       note: `Fee transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+
+#     const usdcTransfer = transactionMaker.makeAlgoPaymentTx(
+#         accountAddress: escrowAddress,
+#         toAddress: accountAddress,
+#         amount: priceWithFee,
+#         suggestedParams,
+#         note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+#       },
+#       false
+
+#     const feeAddr1Transfer = transactionMaker.makeAlgoPaymentTx(
+#         accountAddress: escrowAddress,
+#         toAddress: FEE_ADDR_1,
+#         amount: fee / 2,
+#         suggestedParams,
+#         note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+#       },
+#       false
+
+#     const feeAddr2Transfer = transactionMaker.makeAlgoPaymentTx(
+#         accountAddress: escrowAddress,
+#         toAddress: FEE_ADDR_2,
+#         amount: fee / 2,
+#         suggestedParams,
+#         note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+#       },
+#       false
+
+#     let nftTransfer
+#     let txnGroup = [callTx, feeTx, usdcTransfer]
+#     let signedTxs
+#     if (fromEscrow) {
+#           accountAddress: escrowAddress,
+#           toAddress: buyerAddress,
+#           amount: 1,
+#           assetIndex: nftId,
+#           suggestedParams,
+#           note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+#         },
+#         false
+#       const signedNFTTransfer = logicSign(
+#         lSig,
+#       const signedUSDCTransfer = logicSign(
+#         lSig,
+#       const signedFeeAddr1Transfer = logicSign(
+#         lSig,
+#       const signedFeeAddr2Transfer = logicSign(
+#         lSig,
+#       const signedUserTxs = await this.wallet.sign(
+#         txnGroup,
+#         'sell now transaction'
+#         signedUSDCTransfer,
+#         signedNFTTransfer,
+#         signedFeeAddr1Transfer,
+#         signedFeeAddr2Transfer
+#     } else {
+#         accountAddress: accountAddress,
+#         toAddress: buyerAddress,
+#         amount: 1,
+#         assetIndex: nftId,
+#         suggestedParams,
+#         note: `Transcation for the algoworld asset ${nftId} trade, thank you for using AlgoWorldExplorer :-)`
+#       const signedUSDCTransfer = logicSign(
+#         lSig,
+#       const signedUserTxs = await this.wallet.sign(
+#         txnGroup,
+#         'sell now transaction'
+#       const signedFeeAddr1Transfer = logicSign(
+#         lSig,
+#       const signedFeeAddr2Transfer = logicSign(
+#         lSig,
+#         signedUSDCTransfer,
+#         signedFeeAddr1Transfer,
+#         signedFeeAddr2Transfer
+#     const combinedTxs = combineSignedTxs(signedTxs)
+#     eventBus.$emit('set-action-message', 'Sending sell now transaction...')
+#     const response = await internalService.sendOperationTx({
+#       blob: btoa(String.fromCharCode.apply(null, combinedTxs)),
+#     return {

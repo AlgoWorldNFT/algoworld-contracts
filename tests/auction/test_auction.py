@@ -1,6 +1,7 @@
 import pytest
 
 from tests.auction.utils import (
+    AUCTION_SELL_NFT_OPERATION,
     AUCTION_SET_PRICE_OPERATION,
     AuctionManager,
     assert_states,
@@ -342,15 +343,24 @@ def test_auction_flow(
     )
     print("Up to here so far")
 
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
-    # assert.equal(getGlobal(ASK_PRICE), 10e6);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
-    # contract.setPrice(master, 0, {
-    #     removeNFT: true,
-    # });
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
-    # assert.equal(getGlobal(ASK_PRICE), 0);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
+    #     accountAddress,
+    #     escrowAddress,
+    #     buyerAddress,
+    #     appId,
+    #     nftId,
+    #     price,
+
+    AuctionManager.sell_now(
+        creator_account,
+        escrow,
+        fee_profits_a_account,
+        fee_profits_a_account,
+        buyer_account,
+        app_id,
+        auction_asa_id,
+        0,
+        AUCTION_SELL_NFT_OPERATION.FROM_WALLET,
+    )
 
     # // Sell now with direct NFT transfer
     # contract.sellNow(master, thirdParty.address, {
