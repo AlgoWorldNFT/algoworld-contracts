@@ -1,5 +1,6 @@
 import pytest
 from algosdk.error import AlgodHTTPError
+from src.asas_to_algo_swapper import BASE_OPTIN_FUNDING_AMOUNT
 
 from algoworld_swapper.asas_to_algo_swapper import (
     BASE_OPTIN_FUNDING_AMOUNT,
@@ -19,31 +20,31 @@ from tests.common import (
     swapper_deposit,
     swapper_opt_in,
 )
-from tests.models import LogicSigWallet, Wallet
+from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 #### Fixtures
 
 
 @pytest.fixture()
-def swap_creator() -> Wallet:
+def swap_creator(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper Creator {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def swap_user() -> Wallet:
+def swap_user(algorand_sandbox: AlgorandSandbox) -> Wallet:
     funded_account = generate_wallet()
-    fund_wallet(funded_account)
+    fund_wallet(funded_account, algorand_sandbox)
     print(f"\n --- Swapper User {funded_account.public_key} funded.")
     return funded_account
 
 
 @pytest.fixture()
-def incentive_wallet() -> Wallet:
+def incentive_wallet(algorand_sandbox: AlgorandSandbox) -> Wallet:
     incentive_account = Wallet("", INCENTIVE_FEE_ADDRESS)
-    fund_wallet(incentive_account)
+    fund_wallet(incentive_account, algorand_sandbox)
     print(f"\n --- Incentive Wallet {incentive_account.public_key} funded.")
     return incentive_account
 

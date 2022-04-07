@@ -1,11 +1,9 @@
 """Module containing helper functions for accessing Algorand blockchain."""
 
 import base64
-import os
 import pty
 import subprocess
 import time
-from pathlib import Path
 from random import randint
 from typing import Dict, List
 
@@ -25,23 +23,32 @@ from algosdk.future.transaction import (
     write_to_file,
 )
 from algosdk.v2client import algod, indexer
-
-from algoworld_swapper.asas_to_algo_swapper import (
+from src.asas_to_algo_swapper import (
     AsasToAlgoSwapConfig,
     compile_stateless,
     multi_asa_swapper,
 )
+
 from tests.common.constants import INCENTIVE_FEE_AMOUNT
-from tests.models import LogicSigWallet, Wallet
+from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
 
 
 # SANDBOX
 ################################################################
-def _cli_passphrase_for_account(address):
+def _cli_passphrase_for_account(address, algorand_sandbox: AlgorandSandbox):
     """Return passphrase for provided address."""
-    process = call_sandbox_command("goal", "account", "export", "-a", address)
+    process = call_sandbox_goal_command(
+        "exec",
+        "-it",
+        algorand_sandbox.algod_container_name,
+        "/opt/algorand/bin/goal",
+        "account",
+        "export",
+        "-a",
+        address,
+    )
 
     if process.stderr:
         raise RuntimeError(process.stderr.decode("utf8"))
@@ -58,28 +65,10 @@ def _cli_passphrase_for_account(address):
     return passphrase
 
 
-def _sandbox_directory():
-    """Return full path to Algorand's sandbox executable.
-
-    The location of sandbox directory is retrieved either from the
-    ALGORAND_SANBOX_DIR environment variable or if it's not set then the
-    location of sandbox directory is implied to be the sibling of this Django
-    project in the directory tree.
-    """
-    return os.environ.get("ALGORAND_SANBOX_DIR") or str(
-        Path(__file__).resolve().parent.parent.parent.parent / "sandbox"
-    )
-
-
-def _sandbox_executable():
-    """Return full path to Algorand's sandbox executable."""
-    return _sandbox_directory() + "/sandbox"
-
-
-def call_sandbox_command(*args):
+def call_sandbox_goal_command(*args):
     """Call and return sandbox command composed from provided arguments."""
     return subprocess.run(
-        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
+        ["docker", *args], stdin=pty.openpty()[1], capture_output=True
     )
 
 
@@ -223,7 +212,7 @@ def generate_random_offered_asas(swap_creator: Wallet) -> int:
 #### Functions
 
 
-def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
+def fund_wallet(wallet: Wallet, algorand_sandbox, initial_funds: int = int(10 * 1e6)):
     """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
     if initial_funds_address is None:
@@ -231,7 +220,7 @@ def fund_wallet(wallet: Wallet, initial_funds: int = int(10 * 1e6)):
     _add_transaction(
         initial_funds_address,
         wallet.public_key,
-        _cli_passphrase_for_account(initial_funds_address),
+        _cli_passphrase_for_account(initial_funds_address, algorand_sandbox),
         initial_funds,
         "Initial funds",
     )
@@ -339,6 +328,7 @@ def mint_asa(sender: str, sender_pass: str, asset_name: str, total: int, decimal
         url="https://path/to/my/asset/details",
         decimals=decimals,
     )
+    print(txn)
     # Sign with secret key of creator
     stxn = txn.sign(sender_pass)
 
