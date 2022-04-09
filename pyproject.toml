@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "algoworld-swapper"
+name = "algoworld-contracts"
 version = "0.1.0"
 description = "AlgoWorld Smart Contracts and Signature"
 authors = ["MillionAlgosFather <info@algoworld.io>"]

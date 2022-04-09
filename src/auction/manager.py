@@ -216,7 +216,7 @@ class ManagerContract:
                         Gtxn[1].receiver() == self.escrow_address.get(),
                         # Transfer NFT to a new owner
                         Gtxn[3].sender() == self.escrow_address.get(),
-                        # Transfer USDC to the former owner
+                        # Transfer ALGO to the former owner
                         Gtxn[4].receiver() == self.owner_address.get(),
                         Gtxn[4].sender() == self.escrow_address.get(),
                         Gtxn[4].amount() == self.ask_price.get() * Int(95) / Int(100),
@@ -245,7 +245,7 @@ class ManagerContract:
                     And(
                         # Make sure there's a bid in buyer's account
                         App.localGet(Int(1), Bytes("B")) != Int(0),
-                        # Transfer USDC to the seller
+                        # Transfer ALGO to the seller
                         Gtxn[2].amount()
                         == App.localGet(Int(1), Bytes("B")) * Int(95) / Int(100),
                         Gtxn[2].sender() == self.escrow_address.get(),

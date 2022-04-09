@@ -72,7 +72,6 @@ def auction_asa_id(creator_account: Wallet) -> int:
 
 
 def test_auction_flow(
-    main_account: Wallet,
     creator_account: Wallet,
     buyer_account: Wallet,
     fee_profits_a_account: Wallet,
@@ -87,6 +86,7 @@ def test_auction_flow(
         auction_asa_id,
     )
     assert contract_tx and proxy and app_id
+    AuctionManager.opt_in_wallet(creator_account, app_id)
 
     # Check if initial global state BEFORE configuration, are set to correct default values
     assert_states(
@@ -224,6 +224,7 @@ def test_auction_flow(
 
     # First bid offer
     AuctionManager.opt_in_wallet(buyer_account, app_id)
+    AuctionManager.opt_in_asa(buyer_account, auction_asa_id)
     assert_states(
         [
             LocalStateConditional(
@@ -341,96 +342,316 @@ def test_auction_flow(
             ),
         ]
     )
-    print("Up to here so far")
-
-    #     accountAddress,
-    #     escrowAddress,
-    #     buyerAddress,
-    #     appId,
-    #     nftId,
-    #     price,
 
     AuctionManager.sell_now(
         creator_account,
         escrow,
         fee_profits_a_account,
-        fee_profits_a_account,
+        fee_profits_b_account,
         buyer_account,
         app_id,
         auction_asa_id,
-        0,
         AUCTION_SELL_NFT_OPERATION.FROM_WALLET,
     )
 
-    # // Sell now with direct NFT transfer
-    # contract.sellNow(master, thirdParty.address, {
-    #     directTransfer: true,
-    # });
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
-    # assert.equal(getGlobal(ASK_PRICE), 0);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=EMPTY_WALLET_STATE,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BIDS_AMOUNT,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID_PRICE,
+                arg_value=app_id,
+                account=buyer_account,
+                expected_value=0,
+            ),
+        ]
+    )
 
     # // First ask offer
-    # contract.setPrice(thirdParty, 10e6, {
-    #     addNFT: true,
-    # });
-    # assert.deepEqual(
-    # );
-    # assert.equal(getGlobal(ASK_PRICE), 10e6);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
-    # assert.equal(getLocal(master.address, BID_PRICE), 0);
 
-    # // Increase bid offer
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
-    # assert.equal(getLocal(master.address, BID_PRICE), 2e6);
+    AuctionManager.set_price(
+        buyer_account,
+        escrow,
+        app_id,
+        auction_asa_id,
+        10_000_000,
+        AUCTION_SET_PRICE_OPERATION.ADD_NFT,
+    )
 
-    # // Buy now while increasing bid offer
-    # console.log(
-    #     contract.runtime.getGlobalState(
-    #         ASK_PRICE
-    # );
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
-    # assert.equal(getGlobal(ASK_PRICE), 0);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
-    # assert.equal(getLocal(master.address, BID_PRICE), 0);
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=buyer_account.public_key,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=10_000_000,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BIDS_AMOUNT,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+        ]
+    )
 
-    # // First ask offer
-    # contract.setPrice(master, 10e6, {
-    #     addNFT: true,
-    # });
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
-    # assert.equal(getGlobal(ASK_PRICE), 10e6);
+    AuctionManager.bid_auction(creator_account, escrow, app_id, 2_000_000)
 
-    # // Increase bid offer
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 2e6);
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BIDS_AMOUNT,
+                arg_value=app_id,
+                expected_value=1,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID_PRICE,
+                arg_value=app_id,
+                account=creator_account,
+                expected_value=2_000_000,
+            ),
+        ]
+    )
 
-    # // Decrease ask offer
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
-    # assert.equal(getGlobal(ASK_PRICE), 5e6);
+    #   // Buy now while increasing bid offer
+    AuctionManager.buy_now(
+        creator_account,
+        escrow,
+        fee_profits_a_account,
+        fee_profits_b_account,
+        buyer_account,
+        app_id,
+        auction_asa_id,
+    )
 
-    # // Buy now while decreasing bid offer
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
-    # assert.equal(getGlobal(ASK_PRICE), 0);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=EMPTY_WALLET_STATE,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID_PRICE,
+                arg_value=app_id,
+                account=creator_account,
+                expected_value=0,
+            ),
+        ]
+    )
 
-    # // Create bid offer without ask offer
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 5e6);
+    # Set new price
+    AuctionManager.set_price(
+        creator_account,
+        escrow,
+        app_id,
+        auction_asa_id,
+        10_000_000,
+        AUCTION_SET_PRICE_OPERATION.ADD_NFT,
+    )
 
-    # // First ask offer
-    # contract.setPrice(master, 10e6, {
-    #     addNFT: true,
-    # });
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), addressToPk(master.address));
-    # assert.equal(getGlobal(ASK_PRICE), 10e6);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 1);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 5e6);
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=creator_account.public_key,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=10_000_000,
+            ),
+        ]
+    )
 
-    # // Sell now with direct NFT transfer
-    # assert.deepEqual(getGlobal(OWNER_ADDRESS), new Uint8Array(32));
-    # assert.equal(getGlobal(ASK_PRICE), 0);
-    # assert.equal(getGlobal(BIDS_AMOUNT), 0);
-    # assert.equal(getLocal(thirdParty.address, BID_PRICE), 0);
+    # Bid while increasing bid offer
+    AuctionManager.bid_auction(buyer_account, escrow, app_id, 2_000_000)
+
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                expected_value=1,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                account=buyer_account,
+                expected_value=2_000_000,
+            ),
+        ]
+    )
+
+    # Decrease price without nft transfer
+    AuctionManager.set_price(
+        creator_account,
+        escrow,
+        app_id,
+        auction_asa_id,
+        5_000_000,
+        AUCTION_SET_PRICE_OPERATION.DEFAULT_CALL,
+    )
+
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=creator_account.public_key,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=5_000_000,
+            ),
+        ]
+    )
+
+    # Buy while decreasing bid offer
+    AuctionManager.buy_now(
+        buyer_account,
+        escrow,
+        fee_profits_a_account,
+        fee_profits_b_account,
+        creator_account,
+        app_id,
+        auction_asa_id,
+    )
+
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=EMPTY_WALLET_STATE,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID_PRICE,
+                arg_value=app_id,
+                account=buyer_account,
+                expected_value=0,
+            ),
+        ]
+    )
+
+    # Bid without asking offer
+    AuctionManager.bid_auction(creator_account, escrow, app_id, 5_000_000)
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                expected_value=1,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                account=creator_account,
+                expected_value=5_000_000,
+            ),
+        ]
+    )
+
+    AuctionManager.set_price(
+        buyer_account,
+        escrow,
+        app_id,
+        auction_asa_id,
+        10_000_000,
+        AUCTION_SET_PRICE_OPERATION.ADD_NFT,
+    )
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=buyer_account.public_key,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                expected_value=1,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID,
+                arg_value=app_id,
+                account=creator_account,
+                expected_value=5_000_000,
+            ),
+        ]
+    )
+
+    AuctionManager.sell_now(
+        buyer_account,
+        escrow,
+        fee_profits_a_account,
+        fee_profits_b_account,
+        creator_account,
+        app_id,
+        auction_asa_id,
+        AUCTION_SELL_NFT_OPERATION.FROM_ESCROW,
+    )
+
+    assert_states(
+        [
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.OWNER_ADDRESS,
+                arg_value=app_id,
+                expected_value=EMPTY_WALLET_STATE,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.ASK_PRICE,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            GlobalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BIDS_AMOUNT,
+                arg_value=app_id,
+                expected_value=0,
+            ),
+            LocalStateConditional(
+                arg_name=ALGOWORLD_APP_ARGS.BID_PRICE,
+                arg_value=app_id,
+                account=creator_account,
+                expected_value=0,
+            ),
+        ]
+    )

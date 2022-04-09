@@ -66,7 +66,7 @@ def escrow(app_id: int, nft_id: int, fee_addr1: str, fee_addr2: str):
                     Gtxn[3].asset_amount() == Int(1),
                 )
             ),
-            # Transfer USDC to the former owner
+            # Transfer ALGO to the former owner
             Assert(Gtxn[4].type_enum() == TxnType.Payment),
             # Transfer 5% to creators
             Assert(
@@ -125,7 +125,7 @@ def escrow(app_id: int, nft_id: int, fee_addr1: str, fee_addr2: str):
 
     on_sell_now = Seq(
         [
-            # Transfer USDC to the seller
+            # Transfer ALGO to the seller
             Assert(
                 And(
                     Global.group_size() == Int(6),
