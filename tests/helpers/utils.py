@@ -7,7 +7,6 @@ import time
 from random import randint
 from typing import Dict, List
 
-import yaml
 from algosdk import account, mnemonic
 from algosdk.error import IndexerHTTPError
 from algosdk.future.transaction import (
@@ -29,7 +28,7 @@ from src.swapper.asas_to_algo_swapper import (
     compile_stateless,
     multi_asa_swapper,
 )
-from tests.common.constants import INCENTIVE_FEE_AMOUNT
+from tests.helpers.constants import INCENTIVE_FEE_AMOUNT
 from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 INDEXER_TIMEOUT = 10  # 61 for devMode
@@ -293,18 +292,6 @@ def logic_signature(teal_source):
     """Create and return logic signature for provided `teal_source`."""
     compiled_binary = _compile_source(teal_source)
     return LogicSig(compiled_binary)
-
-
-def parse_params(args, scParam):
-    # Decode external parameter and update current values.
-    # (if an external paramter is passed)
-    try:
-        param = yaml.safe_load(args)
-        for key, value in param.items():
-            scParam[key] = value
-        return scParam
-    except yaml.YAMLError as exc:
-        print(exc)
 
 
 # ASA

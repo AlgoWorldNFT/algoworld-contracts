@@ -6,8 +6,8 @@ from tests.auction.utils import (
     AuctionManager,
     assert_states,
 )
-from tests.common import fund_wallet, generate_wallet
-from tests.common.utils import mint_asa
+from tests.helpers import fund_wallet, generate_wallet
+from tests.helpers.utils import mint_asa
 from tests.models import (
     ALGOWORLD_APP_ARGS,
     AlgorandSandbox,

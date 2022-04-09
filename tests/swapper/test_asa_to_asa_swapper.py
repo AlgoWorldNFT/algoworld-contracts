@@ -7,7 +7,7 @@ from src.swapper.asa_to_asa_swapper import (
     compile_stateless,
     swapper,
 )
-from tests.common import (
+from tests.helpers import (
     INCENTIVE_FEE_ADDRESS,
     asa_to_asa_swap,
     close_swap,

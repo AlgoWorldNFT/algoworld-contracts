@@ -19,7 +19,7 @@ from src.contracts import (
     get_manager_teal,
     get_proxy_teal,
 )
-from tests.common.utils import (
+from tests.helpers.utils import (
     _algod_client,
     _indexer_client,
     group_sign_send_wait,
