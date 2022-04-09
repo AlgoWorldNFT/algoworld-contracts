@@ -11,7 +11,7 @@ py-algorand-sdk = "1.11.0"
 PyYAML = ">=3.2.1,<4.0.0"
 
 [tool.poetry.dev-dependencies]
-black = {version = "^21.9b0", allow-prereleases = true}
+black = "22.3.0"
 pytest = "^7.0.0"
 pytest-depends = "^1.0.1"
 pytest-docker-compose = "^3.2.1"
