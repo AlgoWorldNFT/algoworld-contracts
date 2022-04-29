@@ -1,13 +1,13 @@
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.asa_to_asa_swapper import (
+from src.swapper.asa_to_asa_swapper import (
     OPTIN_FUNDING_AMOUNT,
     AsaToAsaSwapConfig,
     compile_stateless,
     swapper,
 )
-from tests.common import (
+from tests.helpers import (
     INCENTIVE_FEE_ADDRESS,
     asa_to_asa_swap,
     close_swap,

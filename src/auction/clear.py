@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 AlgoWorld
+Copyright (c) 2022 AlgoWorld
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import yaml
+from pyteal import Int, Mode, Return, Seq, compileTeal
+
+if __name__ == "__main__":
+    from helpers.state import LocalState
+else:
+    from .helpers.state import LocalState
+
+TEAL_VERSION = 6
 
 
-def parse_params(args, scParam):
-    """
-    Parse the parameters from the command line.
-    """
+def clear():
+    BID_PRICE = LocalState("B")
 
-    try:
-        param = yaml.safe_load(args)
-        for key, value in param.items():
-            scParam[key] = value
-        return scParam
-    except yaml.YAMLError as exc:
-        print(exc)
+    return Seq(
+        [
+            BID_PRICE.put(Int(0)),
+            Return(Int(1)),
+        ]
+    )
+
+
+if __name__ == "__main__":
+    print(compileTeal(clear(), Mode.Application, version=TEAL_VERSION))

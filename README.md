@@ -1,17 +1,19 @@
-<p align="center"><a  href="https://twitter.com/algoworld_nft/status/1450608110268211203"><img  width=100%  src="https://pbs.twimg.com/media/FCGWpeIWEAsTZ9A?format=jpg&name=4096x4096"  alt="687474703a2f2f6936332e74696e797069632e636f6d2f333031336c67342e706e67"  border="0" /></a></p>
+<p align="center"><a  href="https://twitter.com/algoworld_nft/status/1450608110268211203"><img  width=100%  src="https://i.imgur.com/cGWGmxa.png"  alt="687474703a2f2f6936332e74696e797069632e636f6d2f333031336c67342e706e67"  border="0" /></a></p>
 
 <p align="center">
     <a href="https://algorand.com"><img src="https://img.shields.io/badge/Powered by-Algorand-blue.svg" /></a>
     <a href="https://algoworld.io"><img src="https://img.shields.io/badge/AlgoWorld-Website-pink.svg" /></a>
     <a href="https://algoworldexplorer.io"><img src="https://img.shields.io/badge/AlgoWorldExplorer-Platform-red.svg" /></a>
-    <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-swapper&right_color=green" /></a>
-    <a href="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-swapper/actions/workflows/ci.yaml/badge.svg" /></a>
-    <a href="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper"><img src="https://codecov.io/gh/AlgoWorldNFT/algoworld-swapper/branch/main/graph/badge.svg?token=2O1VAOJCUD"  /></a>
+    <a><img src="https://visitor-badge.glitch.me/badge?page_id=AlgoWorldNFT.algoworld-contracts&right_color=green" /></a>
+    <a href="https://github.com/AlgoWorldNFT/algoworld-contracts/actions/workflows/ci.yaml"><img src="https://github.com/AlgoWorldNFT/algoworld-contracts/actions/workflows/ci.yaml/badge.svg" /></a>
+    <a href="https://codecov.io/gh/AlgoWorldNFT/algoworld-contracts"><img src="https://codecov.io/gh/AlgoWorldNFT/algoworld-contracts/branch/main/graph/badge.svg?token=2O1VAOJCUD"  /></a>
 </p>
 
 ## 📃 About
 
-The following repository hosts the source codes for `AlgoWorld Swapper`'s algorand smart signatures.
+The following repository hosts the source codes for:
+- `AlgoWorld Swapper`'s algorand smart signatures.
+- `AlgoWorldExplorer`'s stateful smart contracts for card auctions and card trading. Modified version of [OpenNFT](https://github.com/ulamlabs/OpenNFT)'s smart contracts.
 
 _**⚠️ NOTE: These contracts are not formally audited by accredited third parties. However, contracts are a basis for certain functionality on the AlgoWorldExplorer.io platform and were created in collaboration with Solution Architect from Algorand (credits @cusma). Code is provided under MIT license.**_
 
@@ -24,11 +26,20 @@ _**⚠️ NOTE: These contracts are not formally audited by accredited third par
 
 ## 🚀 Overview
 
-AlgoWorld currently offers two different types of stateless smart contracts:
+AlgoWorld currently offers stateful contracts used for auction trading on AlgoWorldExplorer and several smart signatures used for swapping on AlgoWorld Swapper.
 
--   [ASA to ASA swap | 🎴↔️🎴](./src/asa_to_asa_swapper.py): <br> Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+### Swapper
 
--   [ASAs to ALGO swap | 🎴🎴🎴↔️💰](./src/asas_to_algo_swapper.py): <br> Allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
+There are two different types of smart signatures available:
+
+- [ASA to ASA swap | 🎴↔️🎴](src/swapper/asa_to_asa_swapper.py): <br> Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+
+- [ASAs to ALGO swap | 🎴🎴🎴↔️💰](src/swapper/asas_to_algo_swapper.py): <br> Allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
+
+### Auction
+
+A set of stateful smart contracts for card auctions and card trading:
+- [ASAs for ALGO with trades and bidding | 🎴💰🔨](src/auction/manager.py): <br> Allows trading ASA via auctions, selling or purchasing directly.
 
 ## ⚙️ Installation
 
@@ -37,7 +48,7 @@ This section assumes that poetry and pre-commit are installed and executed from 
 1. Clone the repo
 
 ```bash
-git clone https://github.com/AlgoWorldNFT/algoworld-swapper
+git clone https://github.com/AlgoWorldNFT/algoworld-contracts
 ```
 
 2. Install python requirements
@@ -73,6 +84,6 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 Special thanks to everyone who forked or starred the repository ❤️
 
-[![Stargazers repo roster for @AlgoWorldNFT/algoworld-swapper](https://reporoster.com/stars/dark/AlgoWorldNFT/algoworld-swapper)](https://github.com/AlgoWorldNFT/algoworld-swapper/stargazers)
+[![Stargazers repo roster for @AlgoWorldNFT/algoworld-contracts](https://reporoster.com/stars/dark/AlgoWorldNFT/algoworld-contracts)](https://github.com/AlgoWorldNFT/algoworld-contracts/stargazers)
 
-[![Forkers repo roster for @AlgoWorldNFT/algoworld-swapper](https://reporoster.com/forks/dark/AlgoWorldNFT/algoworld-swapper)](https://github.com/AlgoWorldNFT/algoworld-swapper/network/members)
+[![Forkers repo roster for @AlgoWorldNFT/algoworld-contracts](https://reporoster.com/forks/dark/AlgoWorldNFT/algoworld-contracts)](https://github.com/AlgoWorldNFT/algoworld-contracts/network/members)

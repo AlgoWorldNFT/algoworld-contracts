@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2021 AlgoWorld
+Copyright (c) 2022 AlgoWorld
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ import sys
 
 from pyteal import Addr, And, Cond, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
-from src.utils import parse_params
+from src.common.utils import parse_params
 
 """
 ASA to ASA Atomic Swapper
@@ -36,7 +36,7 @@ ASA to ASA Atomic Swapper
 3. Close Swap
 """
 
-TEAL_VERSION = 5
+TEAL_VERSION = 6
 
 MAX_FEE = Int(1000)
 OPTIN_FUNDING_AMOUNT = 210000

@@ -1,3 +1,4 @@
+"""
 MIT License
 
 Copyright (c) 2022 AlgoWorld
@@ -19,3 +20,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+"""
+
+import sys
+
+from pyteal import Assert, Int, Mode, Return, Seq, compileTeal
+
+from src.common.utils import parse_params
+
+TEAL_VERSION = 6
+
+
+def proxy(proxy_id: int):
+    return Seq(
+        [
+            Assert(Int(proxy_id) == Int(proxy_id)),
+            Return(Int(1)),
+        ]
+    )
+
+
+if __name__ == "__main__":
+    params = {
+        "proxy_id": 123,
+        "owner_address": "",
+    }
+
+    # Overwrite params if sys.argv[1] is passed
+    if len(sys.argv) > 1:
+        params = parse_params(sys.argv[1], params)
+
+    print(compileTeal(proxy(params["proxy_id"]), Mode.Signature, version=TEAL_VERSION))
