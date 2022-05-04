@@ -355,16 +355,16 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "py-algorand-sdk"
-version = "1.11.0"
+version = "1.13.1"
 description = "Algorand SDK in Python"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.8"
 
 [package.dependencies]
-msgpack = "*"
-pycryptodomex = ">=3.6.0"
-pynacl = "*"
+msgpack = ">=1.0.0,<2"
+pycryptodomex = ">=3.6.0,<4"
+pynacl = ">=1.4.0,<2"
 
 [[package]]
 name = "pycparser"
@@ -578,7 +578,7 @@ six = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "fff35bc9bbb18621bc47b41c8108f341398713cb696902445fc62b57022c4d83"
+content-hash = "b05999962a9c6fff26c3f6d1da5198ebafa07b765512d6d68e58e178e73716ce"
 
 [metadata.files]
 atomicwrites = [
@@ -862,8 +862,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 py-algorand-sdk = [
-    {file = "py-algorand-sdk-1.11.0.tar.gz", hash = "sha256:ca877332170c32d47db0b69a357bc7b01aed64a6d5594eafa9a6b3fafb5b98b2"},
-    {file = "py_algorand_sdk-1.11.0-py3-none-any.whl", hash = "sha256:22ca839b0c54fef0903545020585b4ae3f470ba2351c3b3a8b106b880baf0a61"},
+    {file = "py-algorand-sdk-1.13.1.tar.gz", hash = "sha256:8d9007378925f1ffc598f0f39e0441f179bb637d4bee300984a4ba138ec95797"},
+    {file = "py_algorand_sdk-1.13.1-py3-none-any.whl", hash = "sha256:77ab009a86281c5d230f7497652f755f0be14bcaddd8e8d831f5d17ee9335d03"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
