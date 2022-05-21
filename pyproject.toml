@@ -7,7 +7,7 @@ authors = ["MillionAlgosFather <info@algoworld.io>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 py-algorand-sdk = "1.13.1"
-PyYAML = ">=3.2.1,<4.0.0"
+PyYAML = "6.0"
 pyteal = "0.13.0"
 
 [tool.poetry.dev-dependencies]
