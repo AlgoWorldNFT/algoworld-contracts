@@ -1,7 +1,7 @@
 import pytest
+from algosdk.error import AlgodHTTPError
 
-from src.swapper.asa_to_asa_swapper import compile_stateless
-from src.swapper.swap_proxy import SwapProxy, swapper_proxy
+from src.swapper.swap_proxy import SwapProxy, compile_stateless, swapper_proxy
 from tests.helpers import fund_wallet, generate_wallet, logic_signature
 from tests.helpers.utils import save_proxy_note
 from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
@@ -27,6 +27,10 @@ def swap_proxy(swap_creator: Wallet) -> LogicSigWallet:
         logicsig=swapper_proxy_lsig, public_key=swapper_proxy_lsig.address()
     )
 
-
-def test_swapper_asa_optin(swap_creator: Wallet, swap_proxy: LogicSigWallet):
     save_proxy_note(swap_creator, swap_proxy, "aws_gotta_save_this")
+
+    with pytest.raises(AlgodHTTPError):
+        save_proxy_note(swap_creator, swap_proxy, "gotta_save_this")
+
+    with pytest.raises(AlgodHTTPError):
+        save_proxy_note(swap_proxy, swap_creator, "aws_gotta_save_this")

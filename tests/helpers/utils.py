@@ -621,14 +621,21 @@ def save_proxy_note(creator: Wallet, proxy: LogicSigWallet, note: str):
     algod_client = _algod_client()
     params = algod_client.suggested_params()
 
-    note_tx = PaymentTxn(
+    fee_tx = PaymentTxn(
         sender=creator.public_key,
+        sp=params,
+        receiver=proxy.public_key,
+        amt=110_000,
+    )
+
+    note_tx = PaymentTxn(
+        sender=proxy.public_key,
         sp=params,
         receiver=proxy.public_key,
         amt=0,
         note=note,
     )
 
-    group_sign_send_wait([creator], [note_tx])
+    tx_info = group_sign_send_wait([creator, proxy], [fee_tx, note_tx])
 
-    print(f"\n --- Account {creator.public_key} saved note to proxy.")
+    print(f"\n --- Account {creator.public_key} {tx_info} saved note to proxy.")

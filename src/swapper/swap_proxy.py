@@ -26,13 +26,17 @@ import dataclasses
 import sys
 
 from pyteal import (
-    And,
+    Addr,
+    Assert,
+    Bytes,
     Global,
     Gtxn,
     Int,
     Mode,
     Return,
     Seq,
+    Substring,
+    Txn,
     TxnType,
     compileTeal,
 )
@@ -48,7 +52,8 @@ ASA to ASA Atomic Swapper
 
 TEAL_VERSION = 6
 
-PROXY_NOTE = 0
+FEE_NOTE = 0
+PROXY_NOTE = 1
 
 
 @dataclasses.dataclass
@@ -58,20 +63,31 @@ class SwapProxy:
 
 def swapper_proxy(cfg: SwapProxy):
 
-    return Seq(
-        [
-            And(
-                Global.group_size() == 1,
-                Gtxn[PROXY_NOTE].type_enum() == TxnType.Payment,
-                Gtxn[PROXY_NOTE].amount() == Int(0),
-                Gtxn[PROXY_NOTE].sender() == cfg.swap_creator,
-                Gtxn[PROXY_NOTE].rekey_to() == Global.zero_address(),
-                Gtxn[PROXY_NOTE].close_remainder_to() == Global.zero_address(),
-                "aws_" in str(Gtxn[PROXY_NOTE].note()),
-            ),
-            Return(Int(1)),
-        ]
-    )
+    fee_tx = [
+        Assert(Gtxn[FEE_NOTE].type_enum() == TxnType.Payment),
+        Assert(Gtxn[FEE_NOTE].amount() == Int(110_000)),
+        Assert(Gtxn[FEE_NOTE].sender() == Addr(cfg.swap_creator)),
+        Assert(Gtxn[FEE_NOTE].receiver() == Txn.sender()),
+        Assert(Gtxn[FEE_NOTE].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[FEE_NOTE].close_remainder_to() == Global.zero_address()),
+    ]
+
+    proxy_tx = [
+        Assert(Gtxn[PROXY_NOTE].type_enum() == TxnType.Payment),
+        Assert(Gtxn[PROXY_NOTE].amount() == Int(0)),
+        Assert(Gtxn[PROXY_NOTE].sender() == Txn.sender()),
+        Assert(Gtxn[PROXY_NOTE].receiver() == Txn.sender()),
+        Assert(Gtxn[PROXY_NOTE].rekey_to() == Global.zero_address()),
+        Assert(Gtxn[PROXY_NOTE].close_remainder_to() == Global.zero_address()),
+        Assert(Substring(Gtxn[PROXY_NOTE].note(), Int(0), Int(4)) == Bytes("aws_")),
+    ]
+
+    finalSeq = [Assert(Global.group_size() == Int(2))]
+    finalSeq.extend(fee_tx)
+    finalSeq.extend(proxy_tx)
+    finalSeq.append(Return(Int(1)))
+
+    return Seq(finalSeq)
 
 
 def compile_stateless(program):
