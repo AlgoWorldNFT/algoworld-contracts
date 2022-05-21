@@ -1,7 +1,11 @@
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.swapper.swap_proxy import SwapProxy, compile_stateless, swapper_proxy
+from algoworld_contracts.swapper.swap_proxy import (
+    SwapProxy,
+    compile_stateless,
+    swapper_proxy,
+)
 from tests.helpers import fund_wallet, generate_wallet, logic_signature
 from tests.helpers.utils import save_proxy_note
 from tests.models import AlgorandSandbox, LogicSigWallet, Wallet

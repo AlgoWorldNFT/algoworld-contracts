@@ -24,10 +24,10 @@ SOFTWARE.
 
 from pyteal import Mode, compileTeal
 
-from src.auction.clear import clear
-from src.auction.escrow import escrow
-from src.auction.manager import manager
-from src.auction.proxy import proxy
+from algoworld_contracts.auction.clear import clear
+from algoworld_contracts.auction.escrow import escrow
+from algoworld_contracts.auction.manager import manager
+from algoworld_contracts.auction.proxy import proxy
 
 TEAL_VERSION = 6
 

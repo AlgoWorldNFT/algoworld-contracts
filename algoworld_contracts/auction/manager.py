@@ -48,7 +48,7 @@ from pyteal import (
     compileTeal,
 )
 
-from src.common.utils import parse_params
+from algoworld_contracts.common.utils import parse_params
 
 if __name__ == "__main__":
     from helpers.state import GlobalState, LocalState

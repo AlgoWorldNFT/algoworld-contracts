@@ -41,7 +41,7 @@ from pyteal import (
     compileTeal,
 )
 
-from src.common.utils import parse_params
+from algoworld_contracts.common.utils import parse_params
 
 """
 ASA to ASA Atomic Swapper

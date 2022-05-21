@@ -1,7 +1,7 @@
 import pytest
 from algosdk.error import AlgodHTTPError
 
-from src.swapper.asas_to_algo_swapper import BASE_OPTIN_FUNDING_AMOUNT
+from algoworld_contracts.swapper.asas_to_algo_swapper import BASE_OPTIN_FUNDING_AMOUNT
 from tests.helpers import (
     INCENTIVE_FEE_ADDRESS,
     AsasToAlgoSwapConfig,

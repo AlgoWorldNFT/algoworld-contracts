@@ -26,7 +26,7 @@ import sys
 
 from pyteal import Assert, Int, Mode, Return, Seq, compileTeal
 
-from src.common.utils import parse_params
+from algoworld_contracts.common.utils import parse_params
 
 TEAL_VERSION = 6
 
