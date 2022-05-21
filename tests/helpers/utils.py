@@ -615,3 +615,20 @@ def close_swap(
     group_sign_send_wait(signers, transactions)
 
     print(f"\n --- Account {proof_sender.public_key} closed Swapper.")
+
+
+def save_proxy_note(creator: Wallet, proxy: LogicSigWallet, note: str):
+    algod_client = _algod_client()
+    params = algod_client.suggested_params()
+
+    note_tx = PaymentTxn(
+        sender=creator.public_key,
+        sp=params,
+        receiver=proxy.public_key,
+        amt=0,
+        note=note,
+    )
+
+    group_sign_send_wait([creator], [note_tx])
+
+    print(f"\n --- Account {creator.public_key} saved note to proxy.")
