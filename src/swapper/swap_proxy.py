@@ -26,18 +26,15 @@ import dataclasses
 import sys
 
 from pyteal import (
-    Addr,
     And,
-    Cond,
     Global,
     Gtxn,
     Int,
     Mode,
+    Return,
+    Seq,
     TxnType,
     compileTeal,
-    Seq,
-    Assert,
-    Return,
 )
 
 from src.common.utils import parse_params

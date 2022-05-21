@@ -1,16 +1,8 @@
 import pytest
-from algosdk.error import AlgodHTTPError
 
-from src.swapper.asa_to_asa_swapper import (
-    compile_stateless,
-    swapper,
-)
+from src.swapper.asa_to_asa_swapper import compile_stateless
 from src.swapper.swap_proxy import SwapProxy, swapper_proxy
-from tests.helpers import (
-    fund_wallet,
-    generate_wallet,
-    logic_signature,
-)
+from tests.helpers import fund_wallet, generate_wallet, logic_signature
 from tests.helpers.utils import save_proxy_note
 from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
