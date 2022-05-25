@@ -7,7 +7,8 @@ from algoworld_contracts.swapper.swap_proxy import (
     swapper_proxy,
 )
 from tests.helpers import fund_wallet, generate_wallet, logic_signature
-from tests.helpers.utils import save_proxy_note
+from tests.helpers.constants import SWAP_PROXY_VERSION
+from tests.helpers.utils import activate_or_save_proxy_note
 from tests.models import AlgorandSandbox, LogicSigWallet, Wallet
 
 
@@ -21,9 +22,7 @@ def swap_creator(algorand_sandbox: AlgorandSandbox) -> Wallet:
 
 @pytest.fixture()
 def swap_proxy(swap_creator: Wallet) -> LogicSigWallet:
-    cfg = SwapProxy(
-        swap_creator=swap_creator.public_key,
-    )
+    cfg = SwapProxy(swap_creator=swap_creator.public_key, version=SWAP_PROXY_VERSION)
 
     swapper_proxy_lsig = logic_signature(compile_stateless(swapper_proxy(cfg)))
 
@@ -31,10 +30,35 @@ def swap_proxy(swap_creator: Wallet) -> LogicSigWallet:
         logicsig=swapper_proxy_lsig, public_key=swapper_proxy_lsig.address()
     )
 
-    save_proxy_note(swap_creator, swap_proxy, "aws_gotta_save_this")
+
+def test_swap_proxy_activate_or_save(swap_creator, swap_proxy):
+    # first txn is activation
+    activate_or_save_proxy_note(
+        swap_creator, swap_proxy, "ipfs://_gotta_save_this", 110_000, 0
+    )
+
+    # second txn is store operation
+    activate_or_save_proxy_note(
+        swap_creator, swap_proxy, "ipfs://_gotta_save_this", 10_000, 0
+    )
+
+    # rest are additional edge cases to cover
+    with pytest.raises(AlgodHTTPError):
+        activate_or_save_proxy_note(
+            swap_creator, swap_proxy, "gotta_save_this", 10_000, 0
+        )
 
     with pytest.raises(AlgodHTTPError):
-        save_proxy_note(swap_creator, swap_proxy, "gotta_save_this")
+        activate_or_save_proxy_note(
+            swap_proxy, swap_creator, "ipfs://_gotta_save_this", 10_000, 0
+        )
 
     with pytest.raises(AlgodHTTPError):
-        save_proxy_note(swap_proxy, swap_creator, "aws_gotta_save_this")
+        activate_or_save_proxy_note(
+            swap_creator, swap_proxy, "ipfs://_gotta_save_this", 10_000, 1
+        )
+
+    with pytest.raises(AlgodHTTPError):
+        activate_or_save_proxy_note(
+            swap_creator, swap_proxy, "ipfs://_gotta_save_this", 0, 10
+        )

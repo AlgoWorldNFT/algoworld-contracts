@@ -27,14 +27,15 @@ import sys
 
 from pyteal import (
     Addr,
-    Assert,
+    And,
+    Balance,
     Bytes,
+    Cond,
     Global,
     Gtxn,
     Int,
     Mode,
-    Return,
-    Seq,
+    Or,
     Substring,
     Txn,
     TxnType,
@@ -44,50 +45,61 @@ from pyteal import (
 from algoworld_contracts.common.utils import parse_params
 
 """
-ASA to ASA Atomic Swapper
-1. Offered ASA Opt-In
-2. Offered ASA / Required ASA Swap
-3. Close Swap
+Swapper Proxy Used for Storing Swap Configurations
+1. Activate Proxy
+2. Store Swap Configurations
 """
 
 TEAL_VERSION = 6
 
-FEE_NOTE = 0
-PROXY_NOTE = 1
+STORE_GSIZE = Int(2)
+STORE_FEE = 0
+STORE_PROXY_NOTE = 1
 
 
 @dataclasses.dataclass
 class SwapProxy:
     swap_creator: str
+    version: str
 
 
 def swapper_proxy(cfg: SwapProxy):
 
-    fee_tx = [
-        Assert(Gtxn[FEE_NOTE].type_enum() == TxnType.Payment),
-        Assert(Gtxn[FEE_NOTE].amount() == Int(110_000)),
-        Assert(Gtxn[FEE_NOTE].sender() == Addr(cfg.swap_creator)),
-        Assert(Gtxn[FEE_NOTE].receiver() == Txn.sender()),
-        Assert(Gtxn[FEE_NOTE].rekey_to() == Global.zero_address()),
-        Assert(Gtxn[FEE_NOTE].close_remainder_to() == Global.zero_address()),
-    ]
+    is_proxy_store = And(
+        Global.group_size() == STORE_GSIZE,
+        Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
+        Gtxn[STORE_PROXY_NOTE].type_enum() == TxnType.Payment,
+    )
 
-    proxy_tx = [
-        Assert(Gtxn[PROXY_NOTE].type_enum() == TxnType.Payment),
-        Assert(Gtxn[PROXY_NOTE].amount() == Int(0)),
-        Assert(Gtxn[PROXY_NOTE].sender() == Txn.sender()),
-        Assert(Gtxn[PROXY_NOTE].receiver() == Txn.sender()),
-        Assert(Gtxn[PROXY_NOTE].rekey_to() == Global.zero_address()),
-        Assert(Gtxn[PROXY_NOTE].close_remainder_to() == Global.zero_address()),
-        Assert(Substring(Gtxn[PROXY_NOTE].note(), Int(0), Int(4)) == Bytes("aws_")),
-    ]
+    return Cond([is_proxy_store, proxy_store(cfg)])
 
-    finalSeq = [Assert(Global.group_size() == Int(2))]
-    finalSeq.extend(fee_tx)
-    finalSeq.extend(proxy_tx)
-    finalSeq.append(Return(Int(1)))
 
-    return Seq(finalSeq)
+def proxy_store(cfg: SwapProxy):
+    Balance(Txn.sender())
+
+    store_fee = And(
+        Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
+        Or(
+            Gtxn[STORE_FEE].amount() == Int(110_000),
+            Gtxn[STORE_FEE].amount() == Int(10_000),
+        ),
+        Gtxn[STORE_FEE].sender() == Addr(cfg.swap_creator),
+        Gtxn[STORE_FEE].receiver() == Txn.sender(),
+        Gtxn[STORE_FEE].rekey_to() == Global.zero_address(),
+        Gtxn[STORE_FEE].close_remainder_to() == Global.zero_address(),
+    )
+
+    store_proxy_note = And(
+        Gtxn[STORE_PROXY_NOTE].type_enum() == TxnType.Payment,
+        Gtxn[STORE_PROXY_NOTE].amount() == Int(0),
+        Gtxn[STORE_PROXY_NOTE].sender() == Txn.sender(),
+        Gtxn[STORE_PROXY_NOTE].receiver() == Txn.sender(),
+        Gtxn[STORE_PROXY_NOTE].rekey_to() == Global.zero_address(),
+        Gtxn[STORE_PROXY_NOTE].close_remainder_to() == Global.zero_address(),
+        Substring(Gtxn[STORE_PROXY_NOTE].note(), Int(0), Int(7)) == Bytes("ipfs://"),
+    )
+
+    return And(store_fee, store_proxy_note)
 
 
 def compile_stateless(program):
@@ -97,6 +109,7 @@ def compile_stateless(program):
 if __name__ == "__main__":
     params = {
         "swap_creator": "2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
+        "version": "0.0.1",
     }
 
     # Overwrite params if sys.argv[1] is passed

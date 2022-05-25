@@ -617,22 +617,23 @@ def close_swap(
     print(f"\n --- Account {proof_sender.public_key} closed Swapper.")
 
 
-def save_proxy_note(creator: Wallet, proxy: LogicSigWallet, note: str):
-    algod_client = _algod_client()
-    params = algod_client.suggested_params()
+def activate_or_save_proxy_note(
+    creator: Wallet, proxy: LogicSigWallet, note: str, fee_amount: int, note_amount: int
+):
+    params = _algod_client().suggested_params()
 
     fee_tx = PaymentTxn(
         sender=creator.public_key,
         sp=params,
         receiver=proxy.public_key,
-        amt=110_000,
+        amt=fee_amount,
     )
 
     note_tx = PaymentTxn(
         sender=proxy.public_key,
         sp=params,
         receiver=proxy.public_key,
-        amt=0,
+        amt=note_amount,
         note=note,
     )
 
