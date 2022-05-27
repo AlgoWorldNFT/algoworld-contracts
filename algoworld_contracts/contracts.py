@@ -84,9 +84,9 @@ def get_swapper_teal(
     )
 
 
-def get_swapper_proxy_teal(swap_creator: str):
+def get_swapper_proxy_teal(swap_creator: str, version: str):
     return compileTeal(
-        swapper_proxy(SwapProxy(swap_creator=swap_creator)),
+        swapper_proxy(SwapProxy(swap_creator, version)),
         Mode.Signature,
         version=TEAL_VERSION,
     )
