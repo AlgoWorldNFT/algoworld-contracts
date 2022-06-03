@@ -29,6 +29,10 @@ from algoworld_contracts.auction.escrow import escrow
 from algoworld_contracts.auction.manager import manager
 from algoworld_contracts.auction.proxy import proxy
 from algoworld_contracts.swapper.asa_to_asa_swapper import AsaToAsaSwapConfig, swapper
+from algoworld_contracts.swapper.asas_to_algo_swapper import (
+    AsasToAlgoSwapConfig,
+    multi_asa_swapper,
+)
 from algoworld_contracts.swapper.swap_proxy import SwapProxy, swapper_proxy
 
 TEAL_VERSION = 6
@@ -87,6 +91,32 @@ def get_swapper_teal(
 def get_swapper_proxy_teal(swap_creator: str, version: str):
     return compileTeal(
         swapper_proxy(SwapProxy(swap_creator, version)),
+        Mode.Signature,
+        version=TEAL_VERSION,
+    )
+
+
+def get_multi_swapper_teal(
+    swap_creator: str,
+    offered_asa_amounts: dict[int, int],
+    requested_algo_amount: int,
+    max_fee: int,
+    optin_funding_amount: int,
+    incentive_fee_address: str,
+    incentive_fee_amount: int,
+):
+    return compileTeal(
+        multi_asa_swapper(
+            AsasToAlgoSwapConfig(
+                swap_creator=swap_creator,
+                offered_asa_amounts=offered_asa_amounts,
+                requested_algo_amount=requested_algo_amount,
+                max_fee=max_fee,
+                optin_funding_amount=optin_funding_amount,
+                incentive_fee_address=incentive_fee_address,
+                incentive_fee_amount=incentive_fee_amount,
+            )
+        ),
         Mode.Signature,
         version=TEAL_VERSION,
     )

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "algoworld_contracts"
-version = "1.2.3"
+version = "1.2.4"
 description = "AlgoWorld Smart Contracts and Signatures"
 authors = ["AlgoWorld <info@algoworld.io>"]
 keywords = ["algoworld", "algorand", "blockchain", "pyteal", "smart contracts"]
