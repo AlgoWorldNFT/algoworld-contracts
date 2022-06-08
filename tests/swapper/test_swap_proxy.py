@@ -32,6 +32,12 @@ def swap_proxy(swap_creator: Wallet) -> LogicSigWallet:
 
 
 def test_swap_proxy_activate_or_save(swap_creator, swap_proxy):
+    # first txn is activation (should fail if less than 110_000 provided)
+    with pytest.raises(AlgodHTTPError):
+        activate_or_save_proxy_note(
+            swap_creator, swap_proxy, "gotta_save_this", 10_000, 0
+        )
+
     # first txn is activation
     activate_or_save_proxy_note(
         swap_creator, swap_proxy, "ipfs://_gotta_save_this", 110_000, 0

@@ -28,6 +28,35 @@ _**⚠️ NOTE: These contracts are not formally audited by accredited third par
 
 AlgoWorld currently offers stateful contracts used for auction trading on AlgoWorldExplorer and several smart signatures used for swapping on AlgoWorld Swapper.
 
+---
+
+If you are looking to install algoworld contracts into your project run the following command:
+
+```bash
+pip install algoworld-contracts
+```
+
+### Example usage
+
+```python
+from algoworld_contracts import contracts
+
+# Replace inputParams with real values
+asa_to_asa_swap = contracts.get_swapper_teal(
+        inputParams.creator_address,
+        inputParams.offered_asa_id,
+        inputParams.offered_asa_amount,
+        inputParams.requested_asa_id,
+        inputParams.requested_asa_amount,
+        inputParams.incentive_wallet,
+        inputParams.incentive_fee,
+    )
+
+# asa_to_asa_swap is a string of TEAL code
+response = algod.compile(asa_to_asa_swap)
+...
+```
+
 ### Swapper
 
 There are two main types of smart signatures available:
