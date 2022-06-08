@@ -45,7 +45,7 @@ jobs:
                   fail_ci_if_error: true
 
             - name: Build and publish to pypi
-              # if: github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main'
               uses: JRubics/poetry-publish@v1.11
               with:
                 pypi_token: ${{ secrets.PYPI_TOKEN }}
