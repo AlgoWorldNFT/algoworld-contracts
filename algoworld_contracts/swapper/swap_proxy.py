@@ -28,7 +28,6 @@ import sys
 from pyteal import (
     Addr,
     And,
-    Balance,
     Bytes,
     Cond,
     Global,
@@ -75,7 +74,6 @@ def swapper_proxy(cfg: SwapProxy):
 
 
 def proxy_store(cfg: SwapProxy):
-    Balance(Txn.sender())
 
     store_fee = And(
         Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
@@ -94,8 +92,6 @@ def proxy_store(cfg: SwapProxy):
         Gtxn[STORE_PROXY_NOTE].amount() == Int(0),
         Gtxn[STORE_PROXY_NOTE].sender() == Txn.sender(),
         Gtxn[STORE_PROXY_NOTE].receiver() == Txn.sender(),
-        Gtxn[STORE_PROXY_NOTE].rekey_to() == Global.zero_address(),
-        Gtxn[STORE_PROXY_NOTE].close_remainder_to() == Global.zero_address(),
         Substring(Gtxn[STORE_PROXY_NOTE].note(), Int(0), Int(7)) == Bytes("ipfs://"),
     )
 
