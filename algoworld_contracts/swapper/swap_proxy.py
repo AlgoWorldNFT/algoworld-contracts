@@ -36,7 +36,6 @@ from pyteal import (
     Mode,
     Or,
     Substring,
-    Txn,
     TxnType,
     compileTeal,
 )
@@ -82,7 +81,7 @@ def proxy_store(cfg: SwapProxy):
             Gtxn[STORE_FEE].amount() == Int(10_000),
         ),
         Gtxn[STORE_FEE].sender() == Addr(cfg.swap_creator),
-        Gtxn[STORE_FEE].receiver() == Txn.sender(),
+        Gtxn[STORE_FEE].receiver() == Gtxn[STORE_PROXY_NOTE].sender(),
         Gtxn[STORE_FEE].rekey_to() == Global.zero_address(),
         Gtxn[STORE_FEE].close_remainder_to() == Global.zero_address(),
     )
@@ -90,8 +89,7 @@ def proxy_store(cfg: SwapProxy):
     store_proxy_note = And(
         Gtxn[STORE_PROXY_NOTE].type_enum() == TxnType.Payment,
         Gtxn[STORE_PROXY_NOTE].amount() == Int(0),
-        Gtxn[STORE_PROXY_NOTE].sender() == Txn.sender(),
-        Gtxn[STORE_PROXY_NOTE].receiver() == Txn.sender(),
+        Gtxn[STORE_PROXY_NOTE].sender() == Gtxn[STORE_PROXY_NOTE].receiver(),
         Substring(Gtxn[STORE_PROXY_NOTE].note(), Int(0), Int(7)) == Bytes("ipfs://"),
     )
 
