@@ -1,20 +1,27 @@
 [tool.poetry]
-name = "algoworld-contracts"
-version = "0.1.0"
-description = "AlgoWorld Smart Contracts and Signature"
-authors = ["MillionAlgosFather <info@algoworld.io>"]
+name = "algoworld_contracts"
+version = "1.2.5"
+description = "AlgoWorld Smart Contracts and Signatures"
+authors = ["AlgoWorld <info@algoworld.io>"]
+keywords = ["algoworld", "algorand", "blockchain", "pyteal", "smart contracts"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/AlgoWorldNFT/algoworld-contracts"
+repository = "https://github.com/AlgoWorldNFT/algoworld-contracts"
+include = [
+    "LICENSE",
+]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-pyteal = "0.10.1"
+python = "^3.9"
 py-algorand-sdk = "1.13.1"
-PyYAML = ">=3.2.1,<4.0.0"
+PyYAML = "6.0"
+pyteal = "0.10.0"
 
 [tool.poetry.dev-dependencies]
 black = "22.3.0"
 pytest = "^7.0.0"
 pytest-depends = "^1.0.1"
-pytest-docker-compose = "^3.2.1"
 requests = "^2.27.1"
 coverage = "^6.3.2"
 

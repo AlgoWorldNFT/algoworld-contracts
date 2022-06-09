@@ -13,7 +13,7 @@ from algosdk.future.transaction import (
     StateSchema,
 )
 
-from src.contracts import (
+from algoworld_contracts.contracts import (
     get_clear_teal,
     get_escrow_teal,
     get_manager_teal,

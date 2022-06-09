@@ -3,6 +3,7 @@ version: '3'
 services:
   algod:
     image: makerxau/algorand-sandbox-dev:latest
+    container_name: "aws-algod"
     ports:
       - "4001:4001"
       - "4002:4002"
@@ -12,6 +13,7 @@ services:
 
   indexer:
     image: makerxau/algorand-indexer-dev:latest
+    container_name: "aws-indexer"
     ports:
       - "8980:8980"
     restart: unless-stopped

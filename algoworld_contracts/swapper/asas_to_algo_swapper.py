@@ -27,7 +27,7 @@ import sys
 
 from pyteal import Addr, And, Cond, Expr, Global, Gtxn, Int, Mode, TxnType, compileTeal
 
-from src.common.utils import parse_params
+from algoworld_contracts.common.utils import parse_params
 
 """
 Multi ASA to ALGO Atomic Swapper
@@ -126,27 +126,6 @@ def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
     # Code repetition of `for asa in range(cfg.body_size)` for every check
     # has been kept in favor of readability. A unique for loop would be more
     # succint but maybe harder to read.
-
-    multi_asa_optin_max_fee = [
-        Gtxn[len(cfg.optin_header) + asa].fee() <= Int(cfg.max_fee)
-        for asa in range(cfg.body_size)
-    ]
-
-    multi_asa_optin_rekey_to = [
-        Gtxn[len(cfg.optin_header) + asa].rekey_to() == Global.zero_address()
-        for asa in range(cfg.body_size)
-    ]
-
-    multi_asa_optin_asset_sender = [
-        Gtxn[len(cfg.optin_header) + asa].asset_sender() == Global.zero_address()
-        for asa in range(cfg.body_size)
-    ]
-
-    multi_asa_optin_asset_close_to = [
-        Gtxn[len(cfg.optin_header) + asa].asset_close_to() == Global.zero_address()
-        for asa in range(cfg.body_size)
-    ]
-
     # The following check implies all the ASA xfers have the same sender
     multi_asa_optin_senders = [
         Gtxn[len(cfg.optin_header) + asa].sender()
@@ -172,12 +151,6 @@ def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
         Gtxn[len(cfg.optin_header) + asa].asset_amount() == Int(0)
         for asa in range(cfg.body_size)
     ]
-
-    optin_funding_precondition = And(
-        Gtxn[cfg.optin_header["fee"]].fee() <= Int(cfg.max_fee),
-        Gtxn[cfg.optin_header["fee"]].rekey_to() == Global.zero_address(),
-        Gtxn[cfg.optin_header["fee"]].close_remainder_to() == Global.zero_address(),
-    )
 
     return And(
         Gtxn[cfg.optin_header["fee"]].sender() == Addr(cfg.swap_creator),

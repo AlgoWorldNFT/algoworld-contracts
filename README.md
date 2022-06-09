@@ -28,13 +28,43 @@ _**⚠️ NOTE: These contracts are not formally audited by accredited third par
 
 AlgoWorld currently offers stateful contracts used for auction trading on AlgoWorldExplorer and several smart signatures used for swapping on AlgoWorld Swapper.
 
+---
+
+If you are looking to install algoworld contracts into your project run the following command:
+
+```bash
+pip install algoworld-contracts
+```
+
+### Example usage
+
+```python
+from algoworld_contracts import contracts
+
+# Replace inputParams with real values
+asa_to_asa_swap = contracts.get_swapper_teal(
+        inputParams.creator_address,
+        inputParams.offered_asa_id,
+        inputParams.offered_asa_amount,
+        inputParams.requested_asa_id,
+        inputParams.requested_asa_amount,
+        inputParams.incentive_wallet,
+        inputParams.incentive_fee,
+    )
+
+# asa_to_asa_swap is a string of TEAL code
+response = algod.compile(asa_to_asa_swap)
+...
+```
+
 ### Swapper
 
-There are two different types of smart signatures available:
+There are two main types of smart signatures available:
 
-- [ASA to ASA swap | 🎴↔️🎴](src/swapper/asa_to_asa_swapper.py): <br> Allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+- [ASA to ASA swap | 🎴↔️🎴](algoworld_contracts/swapper/asa_to_asa_swapper.py):  Smart signature that allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+- - [Swap Configuration Proxy 📝](algoworld_contracts/swapper/swap_proxy.py): Smart signature that powers the [AlgoWorld Swapper](https://swapper.algoworld.io) by allowing users to issue certain transactions that contain links to swap configuration files stored as `.json` files on `ipfs`. Proxy is then used to obtain those `ipfs` files by grabbing the latest pay transaction using Algorand Indexer queries.
 
-- [ASAs to ALGO swap | 🎴🎴🎴↔️💰](src/swapper/asas_to_algo_swapper.py): <br> Allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
+- [ASAs to ALGO swap | 🎴🎴🎴↔️💰](algoworld_contracts/swapper/asas_to_algo_swapper.py): Smart signature that allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
 
 ### Auction
 

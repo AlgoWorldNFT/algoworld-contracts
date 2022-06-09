@@ -1,7 +1,7 @@
 # Original file: https://github.com/scale-it/algorand-builder/blob/master/examples/algobpy/parse.py
 from pytest import raises
 
-from src.common.utils import parse_params
+from algoworld_contracts.common.utils import parse_params
 
 
 def test_parse_args():

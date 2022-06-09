@@ -23,7 +23,7 @@ from algosdk.future.transaction import (
 )
 from algosdk.v2client import algod, indexer
 
-from src.swapper.asas_to_algo_swapper import (
+from algoworld_contracts.swapper.asas_to_algo_swapper import (
     AsasToAlgoSwapConfig,
     compile_stateless,
     multi_asa_swapper,
@@ -615,3 +615,37 @@ def close_swap(
     group_sign_send_wait(signers, transactions)
 
     print(f"\n --- Account {proof_sender.public_key} closed Swapper.")
+
+
+def activate_or_save_proxy_note(
+    creator: Wallet,
+    proxy: LogicSigWallet,
+    note: str,
+    fee_amount: int,
+    tx_fee_amount: int,
+    note_amount: int,
+):
+    params = _algod_client().suggested_params()
+
+    fee_tx = PaymentTxn(
+        sender=creator.public_key,
+        sp=params,
+        receiver=proxy.public_key,
+        amt=fee_amount,
+    )
+    fee_tx.fee = tx_fee_amount
+
+    note_tx = PaymentTxn(
+        **{
+            "sender": proxy.public_key,
+            "sp": params,
+            "receiver": proxy.public_key,
+            "amt": note_amount,
+            "note": note,
+        }
+    )
+    note_tx.fee = 0
+
+    tx_info = group_sign_send_wait([creator, proxy], [fee_tx, note_tx])
+
+    print(f"\n --- Account {creator.public_key} {tx_info} saved note to proxy.")
