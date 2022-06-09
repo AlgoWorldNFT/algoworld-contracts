@@ -48,6 +48,7 @@ Swapper Proxy Used for Storing Swap Configurations
 2. Store Swap Configurations
 """
 
+MAX_FEE = Int(1000)
 TEAL_VERSION = 6
 
 STORE_GSIZE = Int(2)
@@ -82,8 +83,6 @@ def proxy_store(cfg: SwapProxy):
         ),
         Gtxn[STORE_FEE].sender() == Addr(cfg.swap_creator),
         Gtxn[STORE_FEE].receiver() == Gtxn[STORE_PROXY_NOTE].sender(),
-        Gtxn[STORE_FEE].rekey_to() == Global.zero_address(),
-        Gtxn[STORE_FEE].close_remainder_to() == Global.zero_address(),
     )
 
     store_proxy_note = And(
@@ -91,6 +90,9 @@ def proxy_store(cfg: SwapProxy):
         Gtxn[STORE_PROXY_NOTE].amount() == Int(0),
         Gtxn[STORE_PROXY_NOTE].sender() == Gtxn[STORE_PROXY_NOTE].receiver(),
         Substring(Gtxn[STORE_PROXY_NOTE].note(), Int(0), Int(7)) == Bytes("ipfs://"),
+        Gtxn[STORE_PROXY_NOTE].fee() <= MAX_FEE,
+        Gtxn[STORE_PROXY_NOTE].rekey_to() == Global.zero_address(),
+        Gtxn[STORE_PROXY_NOTE].close_remainder_to() == Global.zero_address(),
     )
 
     return And(store_fee, store_proxy_note)
