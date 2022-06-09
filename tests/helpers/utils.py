@@ -618,7 +618,12 @@ def close_swap(
 
 
 def activate_or_save_proxy_note(
-    creator: Wallet, proxy: LogicSigWallet, note: str, fee_amount: int, note_amount: int
+    creator: Wallet,
+    proxy: LogicSigWallet,
+    note: str,
+    fee_amount: int,
+    tx_fee_amount: int,
+    note_amount: int,
 ):
     params = _algod_client().suggested_params()
 
@@ -628,14 +633,18 @@ def activate_or_save_proxy_note(
         receiver=proxy.public_key,
         amt=fee_amount,
     )
+    fee_tx.fee = tx_fee_amount
 
     note_tx = PaymentTxn(
-        sender=proxy.public_key,
-        sp=params,
-        receiver=proxy.public_key,
-        amt=note_amount,
-        note=note,
+        **{
+            "sender": proxy.public_key,
+            "sp": params,
+            "receiver": proxy.public_key,
+            "amt": note_amount,
+            "note": note,
+        }
     )
+    note_tx.fee = 0
 
     tx_info = group_sign_send_wait([creator, proxy], [fee_tx, note_tx])
 
