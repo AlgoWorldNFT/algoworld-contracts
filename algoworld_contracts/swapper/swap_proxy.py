@@ -103,7 +103,7 @@ def compile_stateless(program):
 if __name__ == "__main__":
     params = {
         "swap_creator": "2ILRL5YU3FZ4JDQZQVXEZUYKEWF7IEIGRRCPCMI36VKSGDMAS6FHSBXZDQ",
-        "version": "0.0.1",
+        "version": "0.0.2",
     }
 
     # Overwrite params if sys.argv[1] is passed
