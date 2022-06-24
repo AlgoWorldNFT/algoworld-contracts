@@ -9,7 +9,7 @@
 
 - 1. Install Python Semantic Release by `python3 -m pip install python-semantic-release`
 
-- 2.  Should be looking like this. 
+- 2.  Should be looking like this.
 - ![Screenshot (3)](https://user-images.githubusercontent.com/85407620/175610235-41bdb0ad-8067-48fd-a135-b4810ed0f2a1.png)
  ![Screenshot (5)](https://user-images.githubusercontent.com/85407620/175610310-887359b3-566f-4a92-83bc-0d125d2930c4.png)
 
