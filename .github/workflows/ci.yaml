@@ -53,8 +53,7 @@ jobs:
             #   uses: JRubics/poetry-publish@v1.11
             #   with:
             #     pypi_token: ${{ secrets.PYPI_TOKEN }}
-            - name: Semantic Release
-              run: |
-                git config user.name github-actions
-                git config user.email github-actions@github.com
-                poetry run semantic-release publish
+            - uses: bjoluc/semantic-release-config-poetry@v1
+              with:
+                pypi_token: ${{ secrets.PYPI_TOKEN }}
+                github_token: ${{ secrets.GITHUB_TOKEN }}
