@@ -23,7 +23,7 @@ jobs:
 
     - name: Build, publish, update tag
       run: |
-        poetry version $(git describe --tags --abbrev=0)
+        poetry version 1.3.2
         poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
         git config --global user.name 'AlgoWorld Bot'
