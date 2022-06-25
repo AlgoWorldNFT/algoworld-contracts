@@ -1,42 +1,32 @@
-name: Quality Check
+name: Publish
 
 on:
-    pull_request:
-        branches:
-            - "main"
+  workflow_dispatch:
 
 jobs:
-    build-contracts:
-        name: Build & test swapper stateless contract
-        runs-on: ubuntu-latest
+  deploy:
 
-        steps:
-            - name: Cancel Previous Runs
-              uses: styfle/cancel-workflow-action@0.9.1
-              with:
-                  access_token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
 
-            - uses: actions/checkout@v3
+    steps:
+    - uses: actions/checkout@v3
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: 3.10.4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+          python-version: 3.10.4
 
-            - name: Set up Poetry
-              uses: abatilo/actions-poetry@v2.1.4
-              with:
-                  poetry-version: 1.1.13
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v2.1.4
+      with:
+          poetry-version: 1.1.13
 
-            - name: Install python dependencies
-              run: poetry install
+    - name: Build, publish, update tag
+      run: |
+        poetry version $(git describe --tags --abbrev=0)
+        poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-            - name: Run pytest & coverage
-              run: |
-                  poetry run coverage run -m pytest
-                  poetry run coverage xml
-
-            - name: "Upload coverage to Codecov"
-              uses: codecov/codecov-action@v3
-              with:
-                  fail_ci_if_error: true
+        git config --global user.name 'AlgoWorld Bot'
+        git config --global user.email 'info@algoworld.io'
+        git commit -am "🤖 New release, bumping version"
+        git push
