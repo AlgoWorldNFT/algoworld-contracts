@@ -20,10 +20,11 @@ pyteal = "0.10.0"
 
 [tool.poetry.dev-dependencies]
 black = "22.3.0"
-pytest = "^7.0.0"
-pytest-depends = "^1.0.1"
-requests = "^2.27.1"
-coverage = "^6.3.2"
+pytest = "7.1.2"
+pytest-depends = "1.0.1"
+requests = "2.28.0"
+coverage = "6.4.1"
+python-semantic-release = "^7.29.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
