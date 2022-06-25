@@ -5,6 +5,7 @@
     "assignees": ["aorumbayev"],
     "baseBranches": ["main"],
     "separateMajorMinor": true,
+    "semanticCommits": true,
     "rebaseStalePrs": true,
     "lockFileMaintenance": {
         "enabled": true,
