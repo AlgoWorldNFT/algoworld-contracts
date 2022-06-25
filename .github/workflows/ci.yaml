@@ -9,7 +9,7 @@ on:
             - "main"
 
 jobs:
-    build-contracts:
+    Quality:
         name: Build & test swapper stateless contract
         runs-on: ubuntu-latest
 
@@ -52,8 +52,9 @@ jobs:
             #   uses: JRubics/poetry-publish@v1.11
             #   with:
             #     pypi_token: ${{ secrets.PYPI_TOKEN }}
-            - name: "Release to PyPI"
-              uses: bjoluc/semantic-release-config-poetry@v1
+            - name: Python Semantic Release
+              uses: relekang/python-semantic-release@master
               with:
-                pypi_token: ${{ secrets.PYPI_TOKEN }}
                 github_token: ${{ secrets.GITHUB_TOKEN }}
+                repository_username: __token__
+                repository_password: ${{ secrets.PYPI_TOKEN }}
