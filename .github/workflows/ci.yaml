@@ -21,6 +21,9 @@ jobs:
 
             - uses: actions/checkout@v3
 
+            - name: Check commits messages
+              uses: wagoid/commitlint-github-action@v4
+
             - name: Set up Python
               uses: actions/setup-python@v4
               with:
@@ -44,8 +47,13 @@ jobs:
               with:
                   fail_ci_if_error: true
 
-            - name: Build and publish to pypi
-              if: github.ref == 'refs/heads/main'
-              uses: JRubics/poetry-publish@v1.11
+            # - name: Build and publish to pypi
+            #   if: github.ref == 'refs/heads/main'
+            #   uses: JRubics/poetry-publish@v1.11
+            #   with:
+            #     pypi_token: ${{ secrets.PYPI_TOKEN }}
+            - name: "Release to PyPI"
+              uses: bjoluc/semantic-release-config-poetry@v1
               with:
                 pypi_token: ${{ secrets.PYPI_TOKEN }}
+                github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -29,3 +29,9 @@ repos:
       - id: eradicate
         args:
             - --in-place
+
+- repo: https://github.com/commitizen-tools/commitizen
+  rev: v2.20.0
+  hooks:
+    - id: commitizen
+      stages: [commit-msg]
