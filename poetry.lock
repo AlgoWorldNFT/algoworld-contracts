@@ -200,8 +200,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-dev = ["pre-commit", "tox"]
-testing = ["pytest", "pytest-benchmark"]
+testing = ["pytest-benchmark", "pytest"]
+dev = ["tox", "pre-commit"]
 
 [[package]]
 name = "py"
@@ -213,7 +213,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "py-algorand-sdk"
-version = "1.13.1"
+version = "1.16.0"
 description = "Algorand SDK in Python"
 category = "main"
 optional = false
@@ -370,7 +370,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "278070f5328d37c8c072e7ee8a99cb62e30b6053b701b18f470c01d32f19bc36"
+content-hash = "f0b8d6c8425bea9389118a96a376ef7143a226278c3a99f8da7c42e4dc9a442a"
 
 [metadata.files]
 atomicwrites = [
@@ -612,8 +612,8 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 py-algorand-sdk = [
-    {file = "py-algorand-sdk-1.13.1.tar.gz", hash = "sha256:8d9007378925f1ffc598f0f39e0441f179bb637d4bee300984a4ba138ec95797"},
-    {file = "py_algorand_sdk-1.13.1-py3-none-any.whl", hash = "sha256:77ab009a86281c5d230f7497652f755f0be14bcaddd8e8d831f5d17ee9335d03"},
+    {file = "py-algorand-sdk-1.16.0.tar.gz", hash = "sha256:31694957ac7e23bf7bdbb84e1c640bd932fc5b808ffe4bb43fb0a2419023382c"},
+    {file = "py_algorand_sdk-1.16.0-py3-none-any.whl", hash = "sha256:bb24647a6fd8563f7264fc7364ba3eca8a41965afd720dd282c1c44e1dc9b050"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
