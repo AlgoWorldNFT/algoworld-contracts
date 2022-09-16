@@ -16,7 +16,7 @@ include = [
 python = "^3.9"
 py-algorand-sdk = "1.13.1"
 PyYAML = "6.0"
-pyteal = "0.10.0"
+pyteal = "0.18.1"
 
 [tool.poetry.dev-dependencies]
 black = "22.8.0"
