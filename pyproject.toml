@@ -14,7 +14,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-py-algorand-sdk = "1.13.1"
+py-algorand-sdk = "1.17.0"
 PyYAML = "6.0"
 pyteal = "0.10.0"
 
