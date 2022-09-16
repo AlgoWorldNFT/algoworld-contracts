@@ -10,7 +10,18 @@
         "enabled": true,
         "extends": "schedule:monthly"
     },
+    "packageRules": [
+        {
+            "matchPackagePatterns": ["*"],
+            "matchUpdateTypes": ["minor", "patch"],
+            "groupName": "all non-major dependencies",
+            "groupSlug": "all-minor-patch"
+        }
+    ],
     "docker": {
         "enabled": true
+    },
+    "python": {
+        "enabled": false
     }
 }
