@@ -13,8 +13,8 @@ repos:
   rev: 5.10.1
   hooks:
     - id: isort
-- repo: https://github.com/myint/autoflake
-  rev: v1.5.3
+- repo: https://github.com/PyCQA/autoflake
+  rev: v1.6.1
   hooks:
     - id: autoflake
       args:
