@@ -61,7 +61,6 @@ class SwapProxy:
 
 
 def swapper_proxy(cfg: SwapProxy):
-
     is_proxy_store = And(
         Global.group_size() == STORE_GSIZE,
         Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
@@ -72,7 +71,6 @@ def swapper_proxy(cfg: SwapProxy):
 
 
 def proxy_store(cfg: SwapProxy):
-
     store_fee = And(
         Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
         Gtxn[STORE_FEE].sender() == Addr(cfg.swap_creator),

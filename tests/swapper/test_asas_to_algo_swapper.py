@@ -93,7 +93,6 @@ def other_asa_idx(swap_user: Wallet) -> int:
 def swapper_account(
     swap_creator: Wallet, offered_asa_a_idx: int, offered_asa_b_idx: int
 ) -> LogicSigWallet:
-
     return generate_swapper(
         AsasToAlgoSwapConfig(
             swap_creator=swap_creator.public_key,
@@ -118,7 +117,6 @@ def test_multi_asa_optin(
     offered_asa_b_idx: int,
     other_asa_idx: int,
 ):
-
     with pytest.raises(AlgodHTTPError):
         print("\n --- Opt-In fails if not executed by swap creator")
         swapper_opt_in(

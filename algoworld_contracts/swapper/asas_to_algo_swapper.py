@@ -78,7 +78,6 @@ class AsasToAlgoSwapConfig:
 
 
 def multi_asa_swapper(cfg: AsasToAlgoSwapConfig) -> Expr:
-
     multi_asa_optin_type_check = [
         Gtxn[len(cfg.optin_header) + asa].type_enum() == TxnType.AssetTransfer
         for asa in range(cfg.body_size)
@@ -122,7 +121,6 @@ def multi_asa_swapper(cfg: AsasToAlgoSwapConfig) -> Expr:
 
 
 def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
-
     # Code repetition of `for asa in range(cfg.body_size)` for every check
     # has been kept in favor of readability. A unique for loop would be more
     # succint but maybe harder to read.
@@ -166,7 +164,6 @@ def multi_asa_optin(cfg: AsasToAlgoSwapConfig):
 
 
 def multi_asa_swap(cfg: AsasToAlgoSwapConfig):
-
     offered_multi_asa_xfer_max_fee = [
         Gtxn[len(cfg.swap_header) + asa].fee() <= Int(cfg.max_fee)
         for asa in range(cfg.body_size)
@@ -229,7 +226,6 @@ def multi_asa_swap(cfg: AsasToAlgoSwapConfig):
 
 
 def multi_asa_close_swap(cfg: AsasToAlgoSwapConfig):
-
     multi_asa_close_max_fee = [
         Gtxn[len(cfg.close_swap_header) + asa].fee() <= Int(cfg.max_fee)
         for asa in range(cfg.body_size)

@@ -406,7 +406,6 @@ def swapper_deposit(
     params = algod_client.suggested_params()
 
     for asset_id, asset_amount in assets.items():
-
         deposit_asa_txn = AssetTransferTxn(
             sender=swap_creator.public_key,
             sp=params,
