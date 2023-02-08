@@ -68,7 +68,6 @@ class AsaToAsaSwapConfig:
 
 
 def swapper(cfg: AsaToAsaSwapConfig):
-
     is_asa_optin = And(
         Global.group_size() == ASA_OPTIN_GSIZE,
         Gtxn[OPTIN_FEE].type_enum() == TxnType.Payment,
@@ -97,7 +96,6 @@ def swapper(cfg: AsaToAsaSwapConfig):
 
 
 def asa_optin(cfg: AsaToAsaSwapConfig):
-
     optin_fee_precondition = And(
         Gtxn[OPTIN_FEE].fee() <= MAX_FEE,
         Gtxn[OPTIN_FEE].rekey_to() == Global.zero_address(),
@@ -124,7 +122,6 @@ def asa_optin(cfg: AsaToAsaSwapConfig):
 
 
 def asa_swap(cfg: AsaToAsaSwapConfig):
-
     offered_asa_xfer_precondition = And(
         Gtxn[OFFERED_ASA_XFER].fee() <= MAX_FEE,
         Gtxn[OFFERED_ASA_XFER].rekey_to() == Global.zero_address(),
@@ -152,7 +149,6 @@ def asa_swap(cfg: AsaToAsaSwapConfig):
 
 
 def close_swap(cfg: AsaToAsaSwapConfig):
-
     asa_close_precondition = And(
         Gtxn[ASA_CLOSE].fee() <= MAX_FEE,
         Gtxn[ASA_CLOSE].rekey_to() == Global.zero_address(),

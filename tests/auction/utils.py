@@ -86,7 +86,6 @@ def assert_states(conditionals: list):
 
 
 def get_local_state(account: Wallet, app_arg: ALGOWORLD_APP_ARGS, app_id: int):
-
     account_info = ALGOD.account_info(account.public_key)
 
     if "apps-local-state" in account_info:
@@ -165,7 +164,6 @@ class AuctionManager:
         contracts_version: str,
         asa_id: int,
     ):
-
         proxy = AuctionManager.create_proxy()
 
         manager_compiled, manager_params = AuctionManager.create_manager(
@@ -330,7 +328,6 @@ class AuctionManager:
 
     @staticmethod
     def opt_in_wallet(wallet: Wallet, app_id: int):
-
         app_opt_in = ApplicationOptInTxn(
             sender=wallet.public_key,
             sp=ALGOD.suggested_params(),
@@ -342,7 +339,6 @@ class AuctionManager:
 
     @staticmethod
     def opt_in_asa(wallet: Wallet, asa_id: int):
-
         app_opt_in = AssetOptInTxn(
             sender=wallet.public_key,
             sp=ALGOD.suggested_params(),
@@ -421,7 +417,6 @@ class AuctionManager:
         nft_id: int,
         operation_type: AUCTION_SET_PRICE_OPERATION,
     ):
-
         price = get_local_state(buyer_address, ALGOWORLD_APP_ARGS.BID_PRICE, app_id)
         price = 0 if price is None else price
 
@@ -505,7 +500,6 @@ class AuctionManager:
         app_id: int,
         nft_id: int,
     ):
-
         user_bid_price = get_local_state(
             account_address, ALGOWORLD_APP_ARGS.BID_PRICE, app_id
         )
