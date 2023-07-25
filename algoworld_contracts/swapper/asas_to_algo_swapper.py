@@ -215,10 +215,17 @@ def multi_asa_swap(cfg: AsasToAlgoSwapConfig):
         == Addr(cfg.incentive_fee_address),
         Gtxn[cfg.swap_header["incentive_fee"]].amount()
         == Int(cfg.incentive_fee_amount),
+        Gtxn[cfg.swap_header["incentive_fee"]].rekey_to() == Global.zero_address(),
+        Gtxn[cfg.swap_header["incentive_fee"]].close_remainder_to()
+        == Global.zero_address(),
         Gtxn[cfg.swap_header["requested_algo_xfer"]].amount()
         == Int(cfg.requested_algo_amount),
         Gtxn[cfg.swap_header["requested_algo_xfer"]].receiver()
         == Addr(cfg.swap_creator),
+        Gtxn[cfg.swap_header["requested_algo_xfer"]].rekey_to()
+        == Global.zero_address(),
+        Gtxn[cfg.swap_header["requested_algo_xfer"]].close_remainder_to()
+        == Global.zero_address(),
         *offered_multi_asa_xfer_asset_ids,
         *offered_multi_asa_xfer_asset_amounts,
         *offered_multi_asa_xfer_asset_receiver,
@@ -284,6 +291,9 @@ def multi_asa_close_swap(cfg: AsasToAlgoSwapConfig):
         Gtxn[cfg.close_swap_bottom["proof"]].sender() == Addr(cfg.swap_creator),
         Gtxn[cfg.close_swap_bottom["proof"]].receiver() == Addr(cfg.swap_creator),
         Gtxn[cfg.close_swap_bottom["proof"]].amount() == Int(0),
+        Gtxn[cfg.close_swap_bottom["proof"]].close_remainder_to()
+        == Global.zero_address(),
+        Gtxn[cfg.close_swap_bottom["proof"]].rekey_to() == Global.zero_address(),
     )
 
 

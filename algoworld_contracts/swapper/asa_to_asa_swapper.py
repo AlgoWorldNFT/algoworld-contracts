@@ -130,12 +130,20 @@ def asa_swap(cfg: AsaToAsaSwapConfig):
     )
 
     requested_asa_xfer_precondition = And(
-        Gtxn[REQUESTED_ASA_XFER].asset_sender() == Global.zero_address()
+        Gtxn[REQUESTED_ASA_XFER].asset_sender() == Global.zero_address(),
+        Gtxn[REQUESTED_ASA_XFER].asset_close_to() == Global.zero_address(),
+        Gtxn[REQUESTED_ASA_XFER].rekey_to() == Global.zero_address(),
+    )
+
+    incentive_fee_precondition = And(
+        Gtxn[INCENTIVE_FEE].close_remainder_to() == Global.zero_address(),
+        Gtxn[INCENTIVE_FEE].rekey_to() == Global.zero_address(),
     )
 
     return And(
         offered_asa_xfer_precondition,
         requested_asa_xfer_precondition,
+        incentive_fee_precondition,
         Gtxn[OFFERED_ASA_XFER].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[OFFERED_ASA_XFER].asset_amount() == Int(cfg.offered_asa_amount),
         Gtxn[REQUESTED_ASA_XFER].xfer_asset() == Int(cfg.requested_asa_id),
@@ -160,9 +168,15 @@ def close_swap(cfg: AsaToAsaSwapConfig):
         Gtxn[SWAP_CLOSE].rekey_to() == Global.zero_address(),
     )
 
+    proof_precondition = And(
+        Gtxn[PROOF].close_remainder_to() == Global.zero_address(),
+        Gtxn[PROOF].rekey_to() == Global.zero_address(),
+    )
+
     return And(
         asa_close_precondition,
         swap_close_precondition,
+        proof_precondition,
         Gtxn[ASA_CLOSE].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[ASA_CLOSE].asset_receiver() == Addr(cfg.swap_creator),
         Gtxn[ASA_CLOSE].asset_close_to() == Addr(cfg.swap_creator),
