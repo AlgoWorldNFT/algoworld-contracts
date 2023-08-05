@@ -291,9 +291,6 @@ def multi_asa_close_swap(cfg: AsasToAlgoSwapConfig):
         Gtxn[cfg.close_swap_bottom["proof"]].sender() == Addr(cfg.swap_creator),
         Gtxn[cfg.close_swap_bottom["proof"]].receiver() == Addr(cfg.swap_creator),
         Gtxn[cfg.close_swap_bottom["proof"]].amount() == Int(0),
-        Gtxn[cfg.close_swap_bottom["proof"]].close_remainder_to()
-        == Global.zero_address(),
-        Gtxn[cfg.close_swap_bottom["proof"]].rekey_to() == Global.zero_address(),
     )
 
 
