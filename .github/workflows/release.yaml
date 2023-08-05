@@ -1,40 +1,39 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - "*.*.*"
+    push:
+        tags:
+            - "*.*.*"
 
 jobs:
-  deploy:
+    deploy:
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
 
-    steps:
-      - uses: actions/checkout@v3
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.10.4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-            python-version: 3.10.4
+            - name: Set up Poetry
+              uses: abatilo/actions-poetry@v2.3.0
+              with:
+                  poetry-version: 1.5.1
 
-      - name: Set up Poetry
-        uses: abatilo/actions-poetry@v2.3.0
-        with:
-            poetry-version: 1.1.13
+            - name: Build, publish, update tag
+              run: |
+                  poetry version $(git describe --tags --abbrev=0)
+                  poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
 
-      - name: Build, publish, update tag
-        run: |
-          poetry version $(git describe --tags --abbrev=0)
-          poetry publish --build --username __token__ --password ${{ secrets.PYPI_TOKEN }}
+                  git config --local user.name github-actions
+                  git config --local user.email github-actions@github.com
+                  git commit -am "🤖 New release, bumping version"
 
-          git config --local user.name github-actions
-          git config --local user.email github-actions@github.com
-          git commit -am "🤖 New release, bumping version"
-
-      - name: Push to protected branch
-        uses: CasperWA/push-protected@v2
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          branch: main
-          unprotect_reviews: true
+            - name: Push to protected branch
+              uses: CasperWA/push-protected@v2
+              with:
+                  token: ${{ secrets.GH_TOKEN }}
+                  branch: main
+                  unprotect_reviews: true
