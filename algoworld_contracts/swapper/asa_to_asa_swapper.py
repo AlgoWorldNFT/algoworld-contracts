@@ -129,13 +129,8 @@ def asa_swap(cfg: AsaToAsaSwapConfig):
         Gtxn[OFFERED_ASA_XFER].asset_close_to() == Global.zero_address(),
     )
 
-    requested_asa_xfer_precondition = And(
-        Gtxn[REQUESTED_ASA_XFER].asset_sender() == Global.zero_address()
-    )
-
     return And(
         offered_asa_xfer_precondition,
-        requested_asa_xfer_precondition,
         Gtxn[OFFERED_ASA_XFER].xfer_asset() == Int(cfg.offered_asa_id),
         Gtxn[OFFERED_ASA_XFER].asset_amount() == Int(cfg.offered_asa_amount),
         Gtxn[REQUESTED_ASA_XFER].xfer_asset() == Int(cfg.requested_asa_id),

@@ -12,10 +12,11 @@
 ## 📃 About
 
 The following repository hosts the source codes for:
-- `AlgoWorld Swapper`'s algorand smart signatures.
-- `AlgoWorldExplorer`'s stateful smart contracts for card auctions and card trading. Modified version of [OpenNFT](https://github.com/ulamlabs/OpenNFT)'s smart contracts.
 
-_**⚠️ NOTE: These contracts are not formally audited by accredited third parties. However, contracts are a basis for certain functionality on the AlgoWorldExplorer.io platform and were created in collaboration with Solution Architect from Algorand (credits @cusma). Code is provided under MIT license.**_
+-   `AlgoWorld Swapper`'s algorand smart signatures.
+-   `AlgoWorldExplorer`'s stateful smart contracts for card auctions and card trading. Modified version of [OpenNFT](https://github.com/ulamlabs/OpenNFT)'s smart contracts.
+
+_**⚠️ NOTE: These contracts were created in collaboration with Solution Architect from Algorand (credits @cusma) and audited by [TENSET security](https://www.tenset.io/en/smart-contract-audits). Code is provided under MIT license.**_
 
 ## Prerequisites
 
@@ -26,7 +27,7 @@ _**⚠️ NOTE: These contracts are not formally audited by accredited third par
 
 ## 🚀 Overview
 
-AlgoWorld currently offers stateful contracts used for auction trading on AlgoWorldExplorer and several smart signatures used for swapping on AlgoWorld Swapper.
+AlgoWorld currently offers several smart signatures used for swapping on AlgoWorld Swapper.
 
 ---
 
@@ -61,15 +62,10 @@ response = algod.compile(asa_to_asa_swap)
 
 There are two main types of smart signatures available:
 
-- [ASA to ASA swap | 🎴↔️🎴](algoworld_contracts/swapper/asa_to_asa_swapper.py):  Smart signature that allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
-- - [Swap Configuration Proxy 📝](algoworld_contracts/swapper/swap_proxy.py): Smart signature that powers the [AlgoWorld Swapper](https://swapper.algoworld.io) by allowing users to issue certain transactions that contain links to swap configuration files stored as `.json` files on `ipfs`. Proxy is then used to obtain those `ipfs` files by grabbing the latest pay transaction using Algorand Indexer queries.
+-   [ASA to ASA swap | 🎴↔️🎴](algoworld_contracts/swapper/asa_to_asa_swapper.py): Smart signature that allows performing a swap of any single ASA of specified amount to any other single ASA of specified amount.
+-   -   [Swap Configuration Proxy 📝](algoworld_contracts/swapper/swap_proxy.py): Smart signature that powers the [AlgoWorld Swapper](https://swapper.algoworld.io) by allowing users to issue certain transactions that contain links to swap configuration files stored as `.json` files on `ipfs`. Proxy is then used to obtain those `ipfs` files by grabbing the latest pay transaction using Algorand Indexer queries.
 
-- [ASAs to ALGO swap | 🎴🎴🎴↔️💰](algoworld_contracts/swapper/asas_to_algo_swapper.py): Smart signature that allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
-
-### Auction
-
-A set of stateful smart contracts for card auctions and card trading:
-- [ASAs for ALGO with trades and bidding | 🎴💰🔨](src/auction/manager.py): <br> Allows trading ASA via auctions, selling or purchasing directly.
+-   [ASAs to ALGO swap | 🎴🎴🎴↔️💰](algoworld_contracts/swapper/asas_to_algo_swapper.py): Smart signature that allows performing a swap of multiple ASAs of specified amount to ALGO of specified amount.
 
 ## ⚙️ Installation
 

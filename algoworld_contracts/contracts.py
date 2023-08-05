@@ -24,10 +24,6 @@ SOFTWARE.
 
 from pyteal import Mode, compileTeal
 
-from algoworld_contracts.auction.clear import clear
-from algoworld_contracts.auction.escrow import escrow
-from algoworld_contracts.auction.manager import manager
-from algoworld_contracts.auction.proxy import proxy
 from algoworld_contracts.swapper.asa_to_asa_swapper import AsaToAsaSwapConfig, swapper
 from algoworld_contracts.swapper.asas_to_algo_swapper import (
     AsasToAlgoSwapConfig,
@@ -36,30 +32,6 @@ from algoworld_contracts.swapper.asas_to_algo_swapper import (
 from algoworld_contracts.swapper.swap_proxy import SwapProxy, swapper_proxy
 
 TEAL_VERSION = 6
-
-
-def get_clear_teal():
-    return compileTeal(clear(), Mode.Application, version=TEAL_VERSION)
-
-
-def get_escrow_teal(app_id: int, nft_id: int, fee_address_a: str, fee_address_b: str):
-    return compileTeal(
-        escrow(app_id, nft_id, fee_address_a, fee_address_b),
-        Mode.Signature,
-        version=TEAL_VERSION,
-    )
-
-
-def get_proxy_teal(proxy_id: int):
-    return compileTeal(proxy(proxy_id), Mode.Signature, version=TEAL_VERSION)
-
-
-def get_manager_teal(fee_address_a: str, fee_address_b: str, contract_version: str):
-    return compileTeal(
-        manager(fee_address_a, fee_address_b, contract_version),
-        Mode.Application,
-        version=TEAL_VERSION,
-    )
 
 
 def get_swapper_teal(

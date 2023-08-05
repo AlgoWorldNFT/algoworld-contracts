@@ -75,6 +75,8 @@ def proxy_store(cfg: SwapProxy):
         Gtxn[STORE_FEE].type_enum() == TxnType.Payment,
         Gtxn[STORE_FEE].sender() == Addr(cfg.swap_creator),
         Gtxn[STORE_FEE].receiver() == Gtxn[STORE_PROXY_NOTE].sender(),
+        Gtxn[STORE_FEE].rekey_to() == Global.zero_address(),
+        Gtxn[STORE_FEE].close_remainder_to() == Global.zero_address(),
     )
 
     store_proxy_note = And(
