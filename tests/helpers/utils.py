@@ -543,10 +543,8 @@ def asa_to_algo_swap(
 
     group_sign_send_wait(signers, transactions)
 
-    print(
-        f"\n --- Account {offered_assets_sender.public_key} sent {offered_assets} \
-        to {offered_assets_receiver.public_key}."
-    )
+    print(f"\n --- Account {offered_assets_sender.public_key} sent {offered_assets} \
+        to {offered_assets_receiver.public_key}.")
     print(
         f"\n --- Account {requested_algo_sender.public_key} sent {requested_algo_amount} "
         f"units of ALGO {requested_algo_amount} to {requested_algo_receiver.public_key}."
